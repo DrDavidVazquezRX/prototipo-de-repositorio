@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vademécum de proyecciones radiológicas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE clínico, de consulta rápida: denso, ordenado, sin adornos
+   IDEA un vademécum impreso (tipo PLM): índice con pestañas de color por región y monografías con campos fijos
+   PICTURE la herramienta misma: buscador + verificador con su dictamen grande, y la monografía abierta
+   COLOUR banda de película radiográfica (azul petróleo profundo), papel blanco, pestañas de región; verde/ámbar/rojo solo para dictámenes
+   TYPE Source Serif 4 para títulos de monografía + Inter para todo lo demás
+   LAYOUT laptop: banda superior con buscador, índice a la izquierda, verificador y ficha a la derecha; teléfono: buscador, verificador, ficha, índice plegable */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0e1416);--ink:light-dark(#15191c,#e6ecee);--mut:light-dark(#5b6670,#9aa8ae);--line:light-dark(#dfe4e7,#273236);--soft:light-dark(#f3f6f7,#151d20);--film:light-dark(#0f3a44,#0a2a31);--filmink:#f2f7f8;--ok:light-dark(#1d7a46,#4cc483);--okbg:light-dark(#e6f4ec,#12301f);--warn:light-dark(#9a6400,#f0b444);--warnbg:light-dark(#fdf3e0,#33270e);--bad:light-dark(#b3261e,#ff7b72);--badbg:light-dark(#fbe9e7,#3a1715);--alt:light-dark(#255f9e,#7fb4ec);--altbg:light-dark(#e8f0fa,#14243a)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+button,input,select{font:inherit}
+.top{background:var(--film);color:var(--filmink);padding:22px max(4vw,16px) 18px}
+.top h1{font:700 clamp(26px,3.4vw,38px)/1.05 "Source Serif 4",Georgia,serif;letter-spacing:-.02em;margin:0 0 4px;text-wrap:balance}
+.top p{margin:0 0 14px;color:#b9d2d7;font-size:15px}
+.sbox{display:flex;gap:8px;flex-wrap:wrap;max-width:1240px}
+.sbox input{flex:1 1 320px;height:50px;border-radius:10px;border:0;padding:0 16px;font-size:17px;background:#fff;color:#15191c}
+.sbox input:focus{outline:3px solid #7fd3df}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{height:36px;padding:0 14px;border-radius:18px;border:1px solid #4f7a83;background:transparent;color:var(--filmink);cursor:pointer}
+.chip[aria-pressed=true]{background:#f2f7f8;color:#0f3a44;border-color:#f2f7f8;font-weight:600}
+.chip:focus-visible,.btn:focus-visible,.lnk:focus-visible{outline:3px solid #7fd3df;outline-offset:2px}
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:0;max-width:1400px}
+aside{border-right:1px solid var(--line);padding:16px 14px 40px;position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto}
+aside summary{font-weight:600;cursor:pointer;padding:6px 0}
+.tabs{display:flex;gap:4px;margin-bottom:10px}
+.tab{flex:1;height:40px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;cursor:pointer;font-size:14px}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sec{margin:10px 0 2px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.sec i{width:10px;height:22px;border-radius:2px;display:inline-block;flex:none}
+.idx{list-style:none;margin:0 0 6px;padding:0 0 0 18px}
+.idx a{display:block;padding:4px 6px;border-radius:6px;font-size:14px;text-decoration:none;color:var(--ink)}
+.idx a:hover{background:var(--soft)}
+.idx a.cur{background:var(--soft);font-weight:600}
+.idx small{color:var(--mut)}
+main{padding:18px max(3vw,16px) 60px}
+.ver{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--soft);margin-bottom:18px}
+.ver h2{font-size:16px;margin:0 0 10px}
+.vrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
+.vrow label{font-size:13px;color:var(--mut);display:block;margin-bottom:4px}
+.vrow input{width:100%;height:46px;border:1px solid var(--line);border-radius:8px;padding:0 12px;font-size:16px;background:var(--bg);color:var(--ink)}
+.vrow input:focus{outline:2px solid var(--alt)}
+.btn{height:46px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.verdict{margin-top:12px;border-radius:10px;padding:12px 14px;display:none}
+.verdict.on{display:block}
+.verdict b.t{font-size:19px;display:block;margin-bottom:2px}
+.v-ok{background:var(--okbg);color:var(--ok)}
+.v-warn{background:var(--warnbg);color:var(--warn)}
+.v-bad{background:var(--badbg);color:var(--bad)}
+.v-alt{background:var(--altbg);color:var(--alt)}
+.verdict p{margin:4px 0 0;color:var(--ink)}
+.verdict .go{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.lnk{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:14px;font-weight:500;cursor:pointer}
+.lnk:hover{border-color:var(--ink)}
+.res h2{font-size:15px;color:var(--mut);font-weight:600;margin:18px 0 6px}
+.hit{display:flex;gap:10px;align-items:flex-start;padding:10px 4px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.hit:hover{background:var(--soft)}
+.hit i{width:8px;align-self:stretch;border-radius:2px;flex:none}
+.hit b{display:block}
+.hit span{font-size:14px;color:var(--mut)}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:2px}
+.card{border-left:8px solid var(--spine,#888);padding:4px 0 4px 18px}
+.card h2{font:700 clamp(26px,3vw,34px)/1.08 "Source Serif 4",Georgia,serif;letter-spacing:-.015em;margin:4px 0 6px}
+.meta{color:var(--mut);font-size:14px;margin-bottom:12px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.pill{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:3px 10px;font-size:14px}
+dl.tech{display:grid;grid-template-columns:10em minmax(0,1fr);gap:0;margin:0 0 16px;border-top:1px solid var(--line)}
+dl.tech dt,dl.tech dd{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+dl.tech dt{font-weight:600;font-size:14px;color:var(--mut);padding-right:10px}
+.box{border-radius:10px;padding:12px 14px;margin:10px 0}
+.box h3{margin:0 0 6px;font-size:15px}
+.box ul{margin:0;padding-left:18px}
+.box li{margin:4px 0}
+.b-ok{background:var(--okbg)}.b-ok h3{color:var(--ok)}
+.b-warn{background:var(--warnbg)}.b-warn h3{color:var(--warn)}
+.b-bad{background:var(--badbg)}.b-bad h3{color:var(--bad)}
+.b-alt{background:var(--altbg)}.b-alt h3{color:var(--alt)}
+.note{font-size:14px;color:var(--mut);border-top:1px solid var(--line);margin-top:18px;padding-top:10px}
+.empty{color:var(--mut);padding:20px 0}
+.foot{font-size:13px;color:var(--mut);padding:24px max(3vw,16px);border-top:1px solid var(--line)}
+@media(max-width:860px){.wrap{grid-template-columns:minmax(0,1fr)}aside{position:static;max-height:none;border-right:0;border-top:1px solid var(--line);order:2}main{order:1}}
+@media(max-width:600px){.vrow{grid-template-columns:minmax(0,1fr)}dl.tech{grid-template-columns:minmax(0,1fr)}dl.tech dt{border-bottom:0;padding-bottom:0}.card{padding-left:12px;border-left-width:6px}}
+@media(prefers-reduced-motion:no-preference){.verdict.on{animation:pop .25s ease-out}@keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Vademécum de proyecciones radiológicas</h1>
+  <p>Consulte por estudio, región o patología, y verifique si el estudio solicitado es el adecuado.</p>
+  <div class="sbox"><input id="q" type="search" autocomplete="off" placeholder="Ej.: telerradiografía de tórax · mediastino · derrame pleural · tórax AP" aria-label="Buscar"></div>
+  <div class="chips" id="modes">
+    <button class="chip" data-m="all" aria-pressed="true">Todo</button>
+    <button class="chip" data-m="e" aria-pressed="false">Por estudio</button>
+    <button class="chip" data-m="r" aria-pressed="false">Por región</button>
+    <button class="chip" data-m="p" aria-pressed="false">Por patología</button>
+  </div>
+</header>
+<div class="wrap">
+  <aside id="side">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-reg" aria-selected="true">Índice por región</button>
+      <button class="tab" role="tab" id="t-pat" aria-selected="false">Patologías A–Z</button>
+    </div>
+    <nav id="index"></nav>
+  </aside>
+  <main>
+    <section class="ver" aria-labelledby="vh">
+      <h2 id="vh">Verificar solicitud: ¿es el estudio óptimo?</h2>
+      <div class="vrow">
+        <div><label for="vp">Diagnóstico pretendido</label><input id="vp" list="dlp" autocomplete="off" placeholder="Ej.: derrame pleural"></div>
+        <div><label for="ve">Estudio solicitado</label><input id="ve" list="dle" autocomplete="off" placeholder="Ej.: tórax AP"></div>
+        <button class="btn" id="vclr" type="button">Limpiar</button>
+      </div>
+      <datalist id="dlp"></datalist><datalist id="dle"></datalist>
+      <div id="verdict" class="verdict" role="status" aria-live="polite"></div>
+    </section>
+    <div id="view"></div>
+  </main>
+</div>
+<p class="foot">Fichas técnicas resumidas de: L. E. Mosca Bustamante, <i>Vademécum de técnicas para proyecciones radiológicas</i>, El Ateneo (se cita la página). Las recomendaciones por patología, las alternativas de otras modalidades y los avisos de estudio no óptimo son una capa clínica orientativa añadida (basada en criterios de uso apropiado tipo ACR / iRefer y en la NOM-229-SSA1-2002); no sustituyen el juicio del médico radiólogo.</p>
+
+<script>
+{
+const SEC={CR:["Cráneo y macizo facial","#7a4fb5"],CC:["Columna cervical","#c2410c"],CD:["Columna dorsal","#b45309"],CL:["Columna lumbar, sacro y pelvis","#a16207"],HT:["Hombro, tórax y abdomen","#0e7490"],MS:["Miembro superior","#15803d"],MI:["Miembro inferior","#be185d"],XX:["Solicitudes no óptimas","#b3261e"]};
+// [id, sección, nombre, alias, zonas, indicaciones, chasis, posición, rayo central, imagen correcta, nota, página]
+const S=[
+["craneo-pa","CR","Cráneo PA (posteroanterior)",["cráneo de frente","cráneo PA"],["cráneo","bóveda craneal","calota"],["Fractura","Tumor","Cuerpo extraño","Proceso infeccioso"],"24×30 vertical; retirar pasadores y prótesis dentales","Prono, frente y nariz apoyadas, mentón recogido; línea orbitomeatal (LBOM) perpendicular a la película y plano sagital centrado.","Perpendicular, sale por el nasión.","Cráneo simétrico; peñascos proyectados dentro de las órbitas.","",19],
+["craneo-lat","CR","Cráneo lateral (perfil)",["cráneo perfil"],["cráneo","bóveda craneal","calota"],["Fractura","Tumor","Cuerpo extraño","Proceso infeccioso"],"24×30 apaisada","Plano sagital paralelo a la película, línea interpupilar perpendicular; borde superior ~2 cm sobre la calota. Puede fijarse con banda.","Perpendicular, por encima y por delante del conducto auditivo externo (CAE).","Alas esfenoidales y ramas mandibulares superpuestas en una sola línea.","",21],
+["occipitomentoniana","CR","Cráneo y macizo facial, occipitomentoniana",["macizo facial","proyección occipitomentoniana"],["macizo facial","cara","senos maxilares","órbitas"],["Fractura craneofacial"],"24×30 vertical","De pie o prono; el rayo forma 45° con la LBOM (mentón elevado).","Perpendicular a la película, emerge a la altura del borde inferior de los senos maxilares; admite ligera inclinación caudal.","Peñascos por debajo de los senos maxilares.","",23],
+["orbitas-pa","CR","Órbitas de frente",["órbitas PA"],["órbitas","ojo"],["Cuerpo extraño","Fractura"],"13×18 apaisada, con Bucky","Prono, sentado o de pie, apoyando punta de nariz y mentón.","Perpendicular al nasión.","Órbitas libres, sin peñascos superpuestos.","Hacer siempre dos exposiciones: una opacidad que aparece en ambas no es artefacto de placa o pantalla.",25],
+["orbitas-lat","CR","Órbitas de perfil",["órbitas lateral"],["órbitas","ojo"],["Cuerpo extraño"],"13×18 apaisada, dos exposiciones","Cabeza de perfil, plano sagital paralelo a la película, línea interpupilar perpendicular.","Perpendicular a la órbita.","Ambas órbitas de perfil, superpuestas.","",27],
+["rhese","CR","Agujero óptico (Rhese)",["Rhese","canal óptico"],["órbitas","agujero óptico","nervio óptico"],["Tumor","Control de traumatismo"],"13×18 apaisada","Prono; cabeza girada ~50° hacia el lado de interés, apoyando reborde orbitario externo, malar y punta de la nariz.","Con ligera inclinación caudal, centrado en la órbita de interés.","Agujero óptico en un cuadrante externo de la órbita.","Hacer ambos lados para comparar.",29],
+["waters","CR","Senos maxilares, mentonasoplaca (Waters)",["Waters","MNP","mentonaso placa","senos paranasales Waters","hueso malar"],["senos paranasales","senos maxilares","malar","macizo facial","cara"],["Sinusitis y pansinusitis","Pólipos","Engrosamiento mucoso","Tumores","Fractura de malar"],"18×24 vertical, con Bucky","Sentado o de pie (nunca acostado: en decúbito no se ven los niveles hidroaéreos); cabeza extendida ~45°, boca abierta, sin tragar.","Perpendicular al estativo.","Peñascos por debajo de los senos maxilares, sin superponerse.","Variante: nariz y mentón apoyados con el rayo ~20° caudal.",31],
+["spn-perfil","CR","Senos paranasales de perfil",["SPN perfil","senos paranasales lateral"],["senos paranasales","senos maxilares","esfenoides"],["Pansinusitis","Pólipos"],"13×18 vertical","Plano sagital paralelo a la película, línea interpupilar perpendicular; senos maxilares al centro.","Perpendicular, 2 cm por detrás del ángulo externo del ojo.","Ambos senos maxilares superpuestos.","",33],
+["caldwell","CR","Senos frontales PA (Caldwell)",["Caldwell","senos frontales"],["senos paranasales","senos frontales","etmoides"],["Pansinusitis","Osteomielitis frontal"],"13×18 vertical","Sentado, frente y nariz apoyadas; línea horizontal alemana perpendicular; no tragar.","20–30° caudal, emerge por el nasión.","Senos frontales completos; peñascos en el borde inferior de las órbitas.","",35],
+["schuller2","CR","Peñascos transorbitaria comparativa (Schüller II)",["Schüller II","transorbitaria"],["oído","peñasco","conducto auditivo interno"],["Valoración de peñascos y conductos auditivos internos"],"13×18 apaisada","Supino, cabeza centrada y mentón flexionado.","Perpendicular al nasión, al centro de la película.","Ambos peñascos completos a través de las órbitas.","",37],
+["schuller","CR","Mastoides (Schüller)",["Schüller","mastoides"],["oído","mastoides","peñasco"],["Mastoiditis"],"13×18 apaisada; siempre bilateral","Perfil con el plano sagital paralelo a la película; pabellón auricular doblado hacia delante.","30° caudal, emerge por el CAE del lado apoyado.","Celdas mastoideas nítidas; CAI y CAE superpuestos.","",39],
+["atm","CR","Articulación temporomandibular, boca abierta y cerrada",["ATM","temporomaxilar"],["ATM","articulación temporomandibular","mandíbula"],["Hipoplasia del cóndilo","Luxación y subluxación","Artritis y artrosis"],"13×18 apaisada; bilateral, boca abierta y cerrada","Igual que Schüller; rotular cada toma (derecha/izquierda, abierta/cerrada).","30° caudal, emerge 1 cm por delante del CAE.","Cóndilo y eminencia articular visibles en ambas posiciones.","",41],
+["chausse3","CR","Oído medio (Chausse III)",["Chausse III","caja timpánica"],["oído","oído medio","peñasco"],["Otitis","Colesteatoma"],"13×18 apaisada, con Bucky","Supino, LBOM perpendicular a la mesa; cabeza girada 15° al lado contrario.","Perpendicular, por el ángulo externo del ojo del lado de interés.","Caja timpánica y conductos semicirculares visibles.","",43],
+["stenvers","CR","Peñascos y mastoides (Stenvers)",["Stenvers"],["oído","peñasco","mastoides","conducto auditivo interno"],["Mastoiditis","Fractura de peñasco","Vértigo y trastornos del equilibrio","Hipoacusia, acúfenos","Neurinoma del acústico"],"13×18 apaisada; siempre bilateral","Prono; cabeza girada 45° hacia el lado de interés, apoyada en el reborde orbitario; LBOM perpendicular.","12° cefálico.","Peñasco completo, incluido el vértice.","",45],
+["mayer","CR","Peñascos (Mayer)",["Mayer"],["oído","peñasco","mastoides"],["Mastoiditis","Fractura","Trastornos del equilibrio y la audición","Colesteatoma","Tumor"],"13×18 vertical; siempre bilateral","Supino, mentón flexionado, LBOM perpendicular, cabeza girada 45° al lado de interés.","45° caudal, ~7 cm por encima del reborde orbitario contralateral.","Peñasco completo con conductos auditivos y laberinto.","",47],
+["towne","CR","Occipital y agujero occipital (Towne 30° / Altschul 40°)",["Towne","Altschul","foramen magno"],["cráneo","occipital","agujero occipital","foramen magno","peñasco"],["Occipital y agujero occipital","Arco del atlas","Peñascos","Apófisis clinoides"],"24×30 vertical","Supino, mentón recogido, línea horizontal alemana perpendicular.","30° caudal (Altschul: 40°), entra 5 cm sobre el nasión en la línea media.","Occipital y estructuras citadas visibles.","",49],
+["estiloides","CR","Apófisis estiloides",["estiloides"],["cráneo","apófisis estiloides","cuello"],["Visualizar apófisis estiloides","Fractura"],"18×24 vertical","Prono, frente y nariz apoyadas, boca abierta.","15–18° cefálico, 1 cm por debajo de la línea bimastoidea.","Ambas estiloides visibles.","",51],
+["hirtz","CR","Base de cráneo axial (Hirtz / Runström IV)",["Hirtz","submentovértex","base de cráneo"],["cráneo","base de cráneo","peñasco","agujero occipital"],["Fractura","Tumor","Neuralgia del trigémino","Agujero occipital"],"24×30 vertical","Supino en hiperextensión cervical máxima (almohadilla bajo la espalda), vértex apoyado; LBOM paralela a la película.","En el cruce del plano sagital con el plano interauricular.","Base de cráneo simétrica.","",53],
+["mangabeira","CR","Arcos cigomáticos axial (Mangabeira)",["Mangabeira"],["arco cigomático","senos paranasales","macizo facial"],["Fractura de arcos cigomáticos","Visión global de senos paranasales"],"18×24 vertical","Cabeza en hiperextensión, línea horizontal alemana paralela a la mesa, mentón por delante del frontal.","Unos 2,5 cm por detrás de la punta del mentón, en la línea media.","Ambos arcos libres.","",55],
+["zimmer","CR","Arco cigomático (Zimmer)",["Zimmer"],["arco cigomático","macizo facial"],["Fractura del arco cigomático"],"13×18 vertical, con Bucky","Supino en ligera extensión, cabeza girada ~30° hacia el lado de interés.","10° cefálico, entra por la boca y sale por el arco.","Arco cigomático completo y libre.","",57],
+["silla-turca","CR","Silla turca de perfil",["silla turca"],["cráneo","silla turca","hipófisis"],["Tumor de hipófisis","Trastornos del crecimiento","Alteraciones endocrinas"],"13×18 apaisada, con Bucky","Plano sagital paralelo, línea interpupilar perpendicular.","Perpendicular, 2 cm por delante y 1 cm por encima del CAE.","Silla turca con un solo contorno.","",59],
+["mosca","CR","Paladar duro y macizo facial PA (Mosca)",["Mosca","paladar duro"],["macizo facial","paladar","tabique nasal","mandíbula","coanas"],["Fractura","Desviación del tabique","Tumor o trauma del paladar","Pólipos","Coanas"],"24×30 vertical","Supino en hiperextensión cervical máxima; no tragar.","65° cefálico, pasando por delante del cartílago tiroides.","Paladar y macizo facial sin superposición mandibular.","",61],
+["nariz-axial","CR","Huesos propios de la nariz, axial",["nariz axial"],["nariz","huesos nasales","tabique nasal"],["Fractura","Desviación del septo"],"Placa oclusal, sin Bucky","Sentado, muerde la placa introducida hasta el centro del paladar.","Tangencial a la frente, perpendicular a la raíz nasal.","Huesos propios libres de la frente y los dientes.","",63],
+["nariz-lat","CR","Huesos propios de la nariz, perfil",["nariz perfil","huesos nasales"],["nariz","huesos nasales"],["Fractura","Preoperatorio de rinoplastia"],"13×18 dividida en dos, sin Bucky","Perfil con plano sagital paralelo; dos tomas con ~4 kV de diferencia (una fractura puede verse solo en una).","Perpendicular a la raíz nasal.","Huesos propios nítidos, con trazos finos visibles.","",65],
+["cavum","CR","Cavum (perfil de rinofaringe)",["cavum","adenoides"],["cavum","rinofaringe","adenoides","cuello"],["Hipertrofia adenoidea"],"13×18 vertical","Perfil, mentón levemente elevado, boca semiabierta.","Perpendicular, 2 cm por debajo y 1 cm por delante del trago; técnica blanda.","Contorno del cavum nítido.","",67],
+["mandibula-pa","CR","Maxilar inferior PA",["mandíbula PA"],["mandíbula","maxilar inferior","ATM"],["Fractura","Tumor","Quiste"],"18×24 vertical; retirar prótesis","Frente y nariz apoyadas, boca abierta al máximo.","15° cefálico, emerge por el nasión.","Mandíbula completa y ambas ATM.","",69],
+["eisler","CR","Maxilar inferior, rama horizontal (Eisler)",["Eisler","mandíbula oblicua"],["mandíbula","maxilar inferior","glándula submaxilar"],["Fractura","Tumor","Quiste","Litiasis submaxilar"],"13×18 apaisada; retirar prótesis","Cabeza oblicua apoyando el lado de interés, mentón adelantado para separar la columna.","25° cefálico, al centro de la rama horizontal.","Ramas horizontal y vertical sin superposición.","",71],
+["arco-inferior","CR","Arco dental inferior (oclusal)",["oclusal inferior","piso de boca"],["mandíbula","piso de boca","glándula submaxilar","dientes"],["Litiasis submaxilar","Tumor","Quiste"],"Placa oclusal","Sentado con la cabeza en extensión máxima, mordiendo la placa.","Perpendicular a la placa, por el centro del piso de la boca.","Arco dental y piso de boca nítidos.","",73],
+["oclusal-superior","CR","Paladar duro y arco dental superior (oclusal)",["oclusal superior"],["paladar","dientes","maxilar superior"],["Problemas de ortodoncia","Tumor"],"Placa oclusal","Sentado, mordiendo la placa, arcos dentales horizontales.","30° respecto a la perpendicular, en la unión del cartílago con los huesos propios.","Dientes superiores y máxima superficie del paladar.","",75],
+["odontoides-ap","CR","Odontoides AP, boca abierta",["boca abierta","atlas axis","transoral","atlantooccipital AP"],["columna cervical","odontoides","atlas","axis","unión craneocervical"],["Malformaciones","Fracturas","Impresión basilar"],"13×18 apaisada","Sentado o supino, mentón flexionado; boca abierta al máximo.","Perpendicular por la boca abierta, 1 cm bajo la arcada superior.","Atlas, axis y articulación atlantoaxoidea visibles.","",77],
+["odontoides-lat","CR","Odontoides de perfil (atlantooccipital)",["atlantooccipital perfil"],["columna cervical","odontoides","atlas","unión craneocervical"],["Malformaciones","Fracturas","Impresión basilar"],"13×18 apaisada","Sentado, cuello recto y hombros caídos (pesas en las manos).","Perpendicular, 2 cm por debajo y 1 cm por detrás del CAE.","Paladar duro y occipital incluidos.","",79],
+["cerv-ap","CC","Columna cervical AP",["cervical AP"],["columna cervical","cuello"],["Fractura","Luxación","Malformaciones","Artrosis","Metástasis"],"18×24 vertical","De pie o supino, cabeza en extensión.","10–15° cefálico, al centro de la columna cervical.","De C3 a C7.","",81],
+["parisien","CC","Columna cervical AP con mandíbula en movimiento (Parisien)",["Parisien","Ottonello","mandíbula en movimiento"],["columna cervical","cuello"],["Luxación","Malformaciones","Artrosis","Metástasis"],"18×24 vertical","Sentado o supino; el paciente abre y cierra la mandíbula durante el disparo sin mover la cabeza.","Perpendicular a la sínfisis mandibular, al centro de la película.","Mandíbula borrosa y columna cervical completa.","No usar en sospecha de fractura.",83],
+["cerv-lat","CC","Columna cervical de perfil",["cervical lateral"],["columna cervical","cuello","partes blandas prevertebrales"],["Fractura","Traumatismo","Metástasis","Malformaciones","Artrosis"],"18×24 vertical","Sentado o de pie, erguido, hombros bajos, mentón algo elevado.","Perpendicular al centro de la columna cervical.","Todas las vértebras cervicales, incluida C7.","",85],
+["cerv-flex-ext","CC","Columna cervical en flexión y extensión máximas",["dinámicas cervicales","cervical funcional"],["columna cervical","cuello"],["Limitación funcional","Control postraumático (inestabilidad)","Artrosis"],"18×24 (extensión vertical)","Perfil; una toma en flexión máxima y otra en extensión máxima.","Perpendicular a C5, al centro de la película.","Todas las vértebras en ambas tomas.","",87],
+["cerv-oblicuas","CC","Columna cervical oblicuas",["oblicuas cervicales","agujeros de conjunción"],["columna cervical","agujeros de conjunción","forámenes"],["Procesos degenerativos","Estenosis foraminal"],"18×24 vertical","Sentado o de pie, torso a 45° del estativo, mentón levemente elevado; ambos lados.","10° cefálico, al centro de la columna cervical.","Agujeros de conjunción abiertos y simétricos en ambos lados.","",89],
+["cerv-cc-ap","CC","Columna cervical craneocaudal AP (masas laterales)",["pilares cervicales"],["columna cervical","masas laterales","facetas"],["Fractura de masas laterales","Facetas articulares"],"24×30 o 13×18 vertical, con Bucky","Supino con la cabeza en extensión máxima.","30–35° caudal, al centro de la columna cervical.","Masas laterales nítidas.","",91],
+["cerv-cc-obl","CC","Columna cervical craneocaudal oblicua",["pilares oblicua"],["columna cervical","masas laterales","facetas"],["Masas laterales e interlíneas articulares"],"24×30 o 13×18 vertical, con Bucky","Supino, cabeza girada 45° al lado sano.","35–40° caudal, 3 cm por debajo del lóbulo de la oreja.","Masas laterales sin superposición.","",93],
+["cerv-flex-lat","CC","Columna cervical en flexión lateral",["inclinación lateral cervical"],["columna cervical","cuello"],["Limitación funcional","Control postraumático","Artrosis"],"Dos 18×24 vertical, con Bucky","AP con inclinación máxima a cada lado, mandíbula en el plano del occipital.","Perpendicular a C5.","Todas las vértebras cervicales.","",95],
+["cervicodorsal","CC","Columna cervicodorsal, perfil ligeramente oblicuo (nadador)",["nadador","Twining","C7-T1"],["columna cervical","columna dorsal","unión cervicodorsal"],["Traumatismo","Fractura por compresión","Metástasis"],"24×30 vertical","Perfil ligeramente oblicuo; brazo cercano adelante y abajo, el otro hacia atrás.","Perpendicular a C7–T1.","Unión cervicodorsal visible.","Útil cuando el perfil cervical no muestra C7.",97],
+["dorsal-ap","CD","Columna dorsal AP",["dorsal AP","torácica AP"],["columna dorsal","columna torácica"],["Artrosis","Osteoporosis","Metástasis","Fracturas"],"30×40 vertical","Supino o de pie, brazos al costado; apnea en espiración.","Perpendicular a la línea media a nivel del esternón.","De C7 a L1.","",99],
+["dorsal-lat","CD","Columna dorsal de perfil",["dorsal lateral","torácica lateral"],["columna dorsal","columna torácica"],["Fracturas y aplastamientos","Osteoporosis","Metástasis"],"30×40 vertical","De pie, de perfil, brazos estirados en rotación interna; apnea en inspiración.","Perpendicular, un poco por debajo de la punta de la escápula.","Columna dorsal completa.","",101],
+["lumbar-ap","CL","Columna lumbar AP",["lumbar AP","lumbosacra AP"],["columna lumbar","región lumbar"],["Traumatismo","Alteraciones posturales","Degenerativas","Metástasis"],"30×40 vertical","De pie o supino con rodillas flexionadas (rectifica la lordosis).","Perpendicular a L3, ~4 cm sobre la cresta ilíaca.","Desde la última dorsal hasta el sacro.","",103],
+["lumbar-lat","CL","Columna lumbar de perfil",["lumbar lateral"],["columna lumbar","ángulo lumbosacro"],["Traumatismo","Degenerativas","Espondilolistesis","Ángulo lumbosacro"],"30×40 vertical, con Bucky","De pie o acostado, lado doloroso hacia la película; en escoliosis, la concavidad hacia la película.","Perpendicular a L3, ~7 cm por delante del borde posterior de la cintura.","Última dorsal y zona lumbosacra completas.","En decúbito, almohadillas para alinear la columna con la mesa.",105],
+["lumbar-obl","CL","Columna lumbar oblicuas",["oblicuas lumbares","perrito","Scottie dog"],["columna lumbar","istmo","pars interarticularis","articulaciones interapofisarias"],["Espondilólisis","Espondilolistesis","Espondiloartrosis","Traumatismo"],"24×30 o 30×40","Torso girado 45°, lado de interés hacia la película; ambos lados.","12° cefálico, a L4.","Imagen del perrito y espacios intervertebrales.","",107],
+["lumbar-flex-ext","CL","Columna lumbar en flexión y extensión forzadas",["dinámicas lumbares"],["columna lumbar"],["Limitación de flexión o extensión","Inestabilidad"],"30×40 o 35×43 vertical","De pie; flexión y extensión máximas (o flexión lateral a cada lado).","Perpendicular a L4, altura de la cresta ilíaca.","Columna lumbar completa con crestas ilíacas.","",109],
+["ferguson","CL","Charnela L5–S1 (Ferguson / Teschendorf)",["Ferguson","Teschendorf","L5-S1"],["columna lumbar","L5-S1","charnela lumbosacra"],["Degenerativas","Disco L5–S1"],"24×30","Supino, piernas estiradas.","25° o más cefálico a L5–S1 (ángulo medido en el perfil lumbar).","Espacio discal L5–S1 abierto.","",111],
+["jager","CL","Articulación sacroilíaca oblicua (Jäger)",["Jäger","sacroilíaca oblicua"],["sacroilíacas","pelvis"],["Sacroileítis","Degenerativas"],"18×24 vertical","Oblicua para abrir la interlínea de la sacroilíaca de interés.","A la sacroilíaca de interés.","Interlínea sacroilíaca abierta.","",113],
+["barsony","CL","Articulaciones sacroilíacas (Barsony)",["Barsony","sacroilíacas"],["sacroilíacas","pelvis","sacro"],["Sacroileítis","Espondilitis anquilosante (Bechterew)","Degenerativas"],"Como sacro","Supino, piernas semiflexionadas y separadas.","20–30° cefálico, dos traveses de dedo sobre la sínfisis.","Ambas sacroilíacas completas.","",115],
+["sacro-ap","CL","Sacro AP",["sacro frente"],["sacro","pelvis"],["Fractura","Procesos destructivos","Metástasis"],"24×30 vertical","Supino, piernas algo flexionadas.","10° cefálico, línea media, 4 cm sobre la sínfisis.","Sacro y sacroilíacas visibles.","",117],
+["sacro-lat","CL","Sacro de perfil",["sacro lateral"],["sacro","pelvis"],["Fracturas","Procesos destructivos y degenerativos","Metástasis"],"24×30 vertical","Decúbito lateral, rodillas recogidas.","Perpendicular al centro del sacro.","Sacro completo.","",119],
+["coxis-ap","CL","Coxis AP",["cóccix AP"],["coxis","cóccix","pelvis"],["Fractura","Coccigodinia"],"24×30 vertical, con Bucky","Supino, piernas algo flexionadas.","10° caudal, unos 3 traveses sobre la sínfisis.","Coxis sin superposición de la sínfisis.","",121],
+["coxis-lat","CL","Coxis de perfil",["cóccix lateral"],["coxis","cóccix","sacro"],["Fractura","Coccigodinia"],"24×30 vertical, con Bucky","Decúbito lateral, piernas flexionadas.","Al coxis.","Coxis completo y casi todo el sacro.","",123],
+["pelvis-ap","CL","Pelvis AP",["pelvis frente","pelvis AP","ambas caderas"],["pelvis","cadera","coxofemoral"],["Coxartrosis","Enfermedad de Paget","Traumatismo","Metástasis","Entesopatías"],"35×43 apaisada; protección gonadal cuando no tape la zona","Supino, piernas estiradas con pies rotados 20° hacia dentro.","Unos 4 traveses de dedo sobre la sínfisis.","Ilíacos, L5 y ambos trocánteres incluidos.","",125],
+["sinfisis-pa","CL","Sínfisis del pubis PA",["sínfisis PA"],["pubis","sínfisis","pelvis"],["Traumatismo con fractura o disyunción"],"18×24 apaisada, con Bucky","Prono, cabeza girada.","Perpendicular a la sínfisis.","Sínfisis completa.","",127],
+["sinfisis-axial","CL","Sínfisis del pubis axial",["sínfisis axial"],["pubis","sínfisis","pelvis"],["Traumatismo con fractura o disyunción"],"Como sínfisis PA","Sentado, torso a 60° de la mesa.","Perpendicular al pubis.","Sínfisis nítida.","",129],
+["cadera-ap","CL","Articulación coxofemoral AP",["cadera AP"],["cadera","coxofemoral","cuello femoral"],["Coxartrosis","Metástasis","Fracturas"],"24×30 vertical; protección gonadal","Supino, piernas estiradas con rotación interna de 20°.","Perpendicular al punto medio de la ingle.","Articulación y ambos trocánteres.","",131],
+["cadera-ml","CL","Articulación coxofemoral mediolateral (oblicua)",["cadera oblicua"],["cadera","coxofemoral","cuello femoral"],["Sospecha de fractura"],"Diagonal o vertical, con Bucky","Supino con el lado sano elevado 45°.","Al punto medio de la ingle.","Cuello femoral de perfil.","",133],
+["cadera-axial","CL","Coxofemoral axial (perfil quirúrgico)",["perfil quirúrgico","axial de cadera","Lorenz","rayo horizontal"],["cadera","coxofemoral","cuello femoral"],["Fractura de cuello femoral"],"18×24 o 24×30 apaisada, con rejilla","Supino, sin mover el miembro lesionado; chasis vertical contra la cresta, fijado con cuñas.","Horizontal, perpendicular al cuello femoral en sentido mediolateral.","Cuello femoral en perfil verdadero.","",135],
+["vonrosen","CL","Pelvis de von Rosen",["von Rosen","luxación congénita"],["pelvis","cadera","displasia de cadera"],["Luxación congénita / displasia de cadera en el niño","Coxitis"],"18×24 apaisada","Supino, piernas abducidas 45° cada una y en rotación interna.","Perpendicular, 2 cm sobre el pubis.","Pelvis simétrica, agujeros obturadores iguales.","El vademécum la indica incluso sin osificación de las cabezas femorales.",137],
+["lauenstein","CL","Pelvis de Lauenstein (posición de rana)",["Lauenstein","rana","frog leg"],["pelvis","cadera","cuello femoral"],["Luxación congénita de cadera","Perfil de ambas caderas en el adulto"],"24×30 niño · 35×43 adulto","Supino, muslos flexionados y abducidos.","Perpendicular; 2 cm sobre el pubis (niño), 4 cm (adulto).","Pelvis simétrica.","",139],
+["hombro-ap","HT","Hombro AP",["hombro frente"],["hombro","húmero proximal","glenohumeral"],["Fractura","Luxación","Artrosis","Contusión"],"18×24 vertical","Sentado o de pie, hombro de interés bien apoyado (girar ~30° el contrario).","20° caudal a la articulación; perpendicular si hay fractura o luxación.","Cabeza humeral y espacio articular nítidos.","",141],
+["hombro-serie","HT","Hombro, serie estándar (rotaciones)",["serie de hombro","rotación interna y externa"],["hombro","troquíter","troquín","manguito rotador"],["Fracturas por arrancamiento","Periartritis y calcificaciones","Degenerativas"],"Tres 18×24","1) rotación interna (troquíter), 2) rotación externa (troquín), 3) brazo elevado.","10–20° caudal en las dos primeras.","Troquíter y troquín de perfil.","",143],
+["humero-tangencial","HT","Corredera bicipital (cabeza del húmero tangencial)",["corredera bicipital","canal bicipital"],["hombro","corredera bicipital","bíceps"],["Calcificación del tendón del bíceps"],"13×18 apaisada","Supino, brazo junto al cuerpo; chasis vertical sobre el hombro.","Tangencial al brazo y al hombro.","Canal bicipital nítido.","",145],
+["hombro-axial","HT","Hombro axial (vuelo de pájaro)",["vuelo de pájaro","axial de hombro"],["hombro","glenohumeral","acromioclavicular"],["Contusión o fisura, bajo control médico"],"18×24 apaisada","Brazo abducido 90°, chasis sobre el hombro; tubo bajo dirigido a la axila.","Perpendicular al centro de la axila.","Acromioclavicular, cabeza humeral y glenoides.","No se recomienda en traumatismo reciente.",147],
+["hombro-transtoracica","HT","Hombro transtorácico",["transtorácica","Lawrence"],["hombro","húmero proximal","cuello quirúrgico"],["Luxación","Fractura subcapital","Paciente que no puede mover el brazo"],"18×24 o 24×30 vertical, con Bucky","De perfil, brazo contrario sobre la cabeza, brazo de interés junto al cuerpo.","Perpendicular a la cabeza humeral, a través del tórax.","Cabeza humeral entre esternón y columna.","",149],
+["acromioclavicular","HT","Articulación acromioclavicular AP",["acromioclavicular"],["hombro","acromioclavicular","clavícula"],["Artrosis","Traumatismo","Fractura","Luxación"],"Dos tomas","Hombro apoyado, brazos colgando.","Una perpendicular y otra con ~10° cefálico.","Articulación nítida.","",151],
+["ac-comparadas","HT","Acromioclaviculares comparadas con peso",["con peso","estrés acromioclavicular"],["hombro","acromioclavicular"],["Subluxación acromioclavicular"],"30×40 apaisada","De pie, espalda al estativo, 3 kg colgando de cada mano.","Perpendicular a la escotadura supraesternal.","El lado afectado muestra mayor separación.","",153],
+["escapula-ap","HT","Omóplato AP",["escápula AP"],["escápula","omóplato","hombro"],["Fractura"],"24×30 vertical","Omóplato de interés bien apoyado sobre el Bucky.","Perpendicular al omóplato.","Omóplato completo.","",155],
+["escapula-lat","HT","Omóplato de perfil",["escápula lateral","escápula en Y"],["escápula","omóplato","hombro"],["Fractura"],"24×30 vertical","Brazo de interés elevado, ligeramente girado.","Perpendicular al eje del omóplato.","Omóplato de perfil.","",157],
+["clavicula-pa","HT","Clavícula PA",["clavícula"],["clavícula","hombro"],["Fractura de clavícula"],"18×24 apaisada","De pie, clavícula apoyada, cabeza girada al lado sano.","Perpendicular a la clavícula.","Clavícula completa.","",159],
+["clavicula-tang","HT","Clavícula tangencial",["clavícula axial"],["clavícula","hombro"],["Fractura de clavícula"],"18×24 apaisada","Supino, hombro levemente elevado.","30–40° cefálico.","Clavícula proyectada sobre el tórax.","",161],
+["esternoclavicular","HT","Articulación esternoclavicular",["esternoclavicular"],["esternoclavicular","esternón","clavícula"],["Artritis","Artrosis","Luxación"],"13×18 apaisada","Lado sano elevado 45°, brazo contrario sobre la cabeza.","Perpendicular, 3 cm lateral a la columna del lado sano.","Articulación sin superposición vertebral.","",163],
+["esternon-pa","HT","Esternón PA (oblicua)",["esternón PA"],["esternón","tórax"],["Fractura","Metástasis"],"24×30 vertical","De pie o prono con el hemitórax derecho elevado ~20°.","Perpendicular, entra por el dorso contralateral y sale por el esternón.","Esternón proyectado fuera de la columna.","",165],
+["esternon-lat","HT","Esternón de perfil",["esternón lateral"],["esternón","tórax"],["Fractura","Metástasis"],"24×30 vertical","De pie, perfil estricto, brazos hacia atrás.","Perpendicular al esternón.","Esternón completo de perfil.","",167],
+["parrilla","HT","Parrilla costal (hemitórax)",["costillas","parrilla costal","hemitórax"],["costillas","parrilla costal","tórax"],["Fractura costal","Metástasis"],"35×43 o 30×40 vertical","De pie o acostado, brazos en ligera rotación interna.","Perpendicular al ángulo inferior del omóplato.","Arcos costales del lado de interés.","",169],
+["torax-pa","HT","Tórax PA (telerradiografía de tórax)",["telerradiografía de tórax","teleradiografía de tórax","tele de tórax","tórax de frente","tórax PA","rx de tórax"],["tórax","pulmón","pulmones","mediastino","corazón","hilios","diafragma","pleura","senos costofrénicos"],["Estructura pulmonar","Silueta cardíaca","Hilios y diafragmas","Mediastino"],"35×35 o 35×43; retirar collares y sostén","De pie, pecho contra el estativo, manos en la cintura con hombros adelante (separa las escápulas); inspiración profunda y apnea.","Línea media a la altura de los ángulos inferiores de las escápulas.","Vértices y senos costofrénicos completos.","Distancia tubo-película mínima 1,80 m. Técnica de alto kV (~125 kV). En sospecha de neumotórax puede tomarse en espiración.",171],
+["torax-lat","HT","Tórax de perfil (lateral)",["tórax lateral","perfil de tórax"],["tórax","pulmón","mediastino","corazón","espacio retrocardíaco","aorta","pleura"],["Campos pulmonares","Mediastino anterior y posterior","Espacio retrocardíaco","Aorta"],"30×40 vertical","De pie, perfil estricto, manos en la nuca y codos hacia la línea media.","Centro del tórax a la altura de los ángulos de las escápulas.","Pulmones completos, de vértices a senos posteriores.","Distancia mínima 1,80 m.",173],
+["torax-oblicuas","HT","Tórax oblicuas anteriores",["OAD","OAI","oblicua anterior derecha","oblicua anterior izquierda"],["tórax","corazón","aurícula izquierda","aorta","mediastino"],["OAD: aurícula izquierda (con esófago contrastado)","OAI: cavidades cardíacas, aorta"],"35×35 o 35×43","Tórax girado 45° apoyando el lado anterior derecho (OAD) o izquierdo (OAI), manos en la nuca.","Centro del tórax.","Silueta cardíaca libre de la columna.","Distancia 1,80 m.",175],
+["torax-vertice","HT","Tórax, proyección descentrada de vértice (apicolordótica)",["apicolordótica","lordótica","vértices"],["tórax","vértices pulmonares","pulmón"],["Vértices libres de clavículas y primeras costillas","Infiltrados y cavernas tuberculosas"],"24×30 apaisada","De pie o supino; borde superior 5 cm sobre el hombro; inspiración profunda.","15–30° cefálico, 2 cm por debajo de las clavículas.","Vértices sin superposición clavicular.","",177],
+["abdomen","HT","Directa (placa simple) de abdomen",["placa simple de abdomen","abdomen simple","directa de abdomen","radiografía de abdomen","simple de abdomen"],["abdomen","riñón","vías urinarias","psoas","intestino"],["Calcificaciones radioopacas (litiasis)","Sombras renales","Bordes del psoas","Placa previa a urografía"],"35×43 vertical; retirar objetos metálicos","Supino (o de pie). Encuadre hacia arriba o abajo según la zona que interese.","A la altura de la cresta ilíaca.","Desde los riñones hasta la sínfisis.","En sospecha de perforación deben verse ambas cúpulas diafragmáticas (de pie); subir ~10 kV.",179],
+["mano-pa","MS","Mano PA (dorsopalmar)",["mano de frente","mano PA"],["mano","dedos","metacarpianos"],["Poliartritis","Artrosis","Fracturas","Edad ósea","Cuerpo extraño"],"18×24 vertical","Sentado junto a la mesa, palma apoyada, dedos algo separados.","Perpendicular a la cabeza del 3.er metacarpiano.","Mano completa.","Hacer ambas manos para comparar.",181],
+["mano-lat","MS","Mano de perfil",["mano lateral"],["mano","metacarpianos"],["Localizar cuerpos extraños","Desplazamiento de fragmentos"],"18×24 vertical","Mano apoyada por el borde cubital, pulgar separado.","Perpendicular a la articulación MCF del índice.","Metacarpianos superpuestos.","Marcar la zona sospechosa con referencias metálicas.",183],
+["mano-obl","MS","Mano oblicua",["mano oblicua"],["mano","metacarpianos","dedos"],["Cuerpo extraño poco denso","Fracturas de metacarpianos"],"18×24 vertical","Mano oblicua con dedos semiflexionados en garra.","Perpendicular a la cabeza del 3.er metacarpiano.","Metacarpianos sin superposición.","",185],
+["pulgar-pa","MS","Pulgar palmodorsal",["pulgar AP"],["pulgar","mano"],["Fractura (Bennett)","Luxación","Cuerpo extraño"],"13×18 vertical","Mano en pronación forzada, dorso del pulgar sobre la película.","Perpendicular a la MCF del pulgar.","Pulgar completo con trapecio.","",187],
+["pulgar-estres","MS","Pulgar en hiperextensión forzada sostenida",["pulgar estrés","pulgar del esquiador"],["pulgar","mano"],["Subluxación","Lesión ligamentaria"],"13×18 vertical","Como palmodorsal, con hiperextensión mantenida.","Perpendicular a la MCF.","Apertura articular valorable.","Solo tras descartar fractura.",189],
+["pulgar-lat","MS","Pulgar de perfil",["pulgar lateral"],["pulgar","mano"],["Fractura","Luxación"],"13×18 vertical","Mano apoyada sobre anular y meñique, pulgar de perfil.","Perpendicular a la MCF del pulgar.","Pulgar en perfil verdadero.","",191],
+["dedo-pa","MS","Dedo de la mano PA",["dedo PA"],["dedos","mano","falanges"],["Fractura","Fisura","Cuerpo extraño"],"13×18 dividida en dos","Palma apoyada, dedos algo abiertos; colimar.","Perpendicular a la interfalángica proximal.","Dedo completo.","",193],
+["dedo23-lat","MS","2.º y 3.er dedo de perfil",["dedo lateral"],["dedos","mano","falanges"],["Fractura","Fisura","Cuerpo extraño"],"13×18","Mano por el borde radial, dedo extendido y separado.","Perpendicular a la IFP.","Dedo en perfil sin superposición.","",195],
+["dedo45-lat","MS","4.º y 5.º dedo de perfil",["dedo lateral"],["dedos","mano","falanges"],["Fractura","Fisura","Cuerpo extraño"],"13×18","Mano por el borde cubital, dedo extendido y separado.","Perpendicular a la 2.ª falange.","Dedo en perfil sin superposición.","",197],
+["carpo-pa","MS","Carpo y metacarpo dorsopalmar",["carpo PA"],["carpo","muñeca","metacarpianos"],["Edad ósea","Fractura","Degenerativas"],"18×24 vertical","Palma apoyada.","Perpendicular al 3.er metacarpiano.","Carpo y metacarpo.","",199],
+["carpo-lat","MS","Carpo de perfil",["carpo lateral"],["carpo","muñeca","semilunar"],["Fracturas de escafoides, semilunar y piramidal"],"18×24 vertical","Puño semicerrado apoyado por el borde cubital.","Perpendicular al escafoides.","Radio, semilunar y grande alineados.","",201],
+["carpo-obl","MS","Carpo y metacarpo oblicua",["carpo oblicua"],["carpo","muñeca","metacarpianos"],["Fractura","Degenerativas"],"18×24 vertical","Mano a 45° sobre el borde cubital.","Perpendicular al 3.er metacarpiano.","Carpo y metacarpo oblicuos.","",203],
+["escafoides","MS","Proyección para escafoides (desviación cubital)",["escafoides","navicular"],["escafoides","muñeca","carpo"],["Fractura de escafoides"],"13×18 vertical","Palma apoyada con desviación cubital: pulgar y radio en línea.","Perpendicular al escafoides.","Escafoides elongado, sin acortamiento.","",205],
+["piramidal","MS","Proyección para hueso piramidal",["piramidal"],["carpo","piramidal","muñeca"],["Fractura de piramidal"],"13×18 vertical","Mano en 60° de pronación, semiflexionada.","Tangencial al piramidal.","Piramidal libre.","",207],
+["pisiforme","MS","Proyección para hueso pisiforme",["pisiforme"],["carpo","pisiforme","muñeca"],["Fractura de pisiforme"],"13×18 vertical","Mano en 60° de supinación, leve dorsiflexión.","Perpendicular al pisiforme.","Pisiforme libre.","",209],
+["canal-carpiano","MS","Canal carpiano axial",["túnel carpiano","Gaynor-Hart"],["carpo","túnel carpiano","muñeca","pisiforme","ganchoso"],["Canal carpiano","Pisiforme","Gancho del ganchoso"],"13×18 vertical","Muñeca apoyada en dorsiflexión máxima (tracción de los dedos con cinta).","~45°, dirigido al canal carpiano.","Canal carpiano en sección.","",211],
+["muneca-pa","MS","Muñeca dorsopalmar",["muñeca PA","muñeca frente"],["muñeca","radio distal","cúbito distal","carpo"],["Fractura","Luxación","Fractura en tallo verde"],"13×18 vertical","Palma apoyada, muñeca al centro.","Perpendicular al centro de la muñeca.","Radio y cúbito distales y carpo.","",213],
+["muneca-lat","MS","Muñeca de perfil",["muñeca lateral"],["muñeca","radio distal","carpo"],["Fractura","Luxación","Fractura en tallo verde"],"13×18 vertical","Mano y antebrazo en perfil estricto por el borde cubital.","Perpendicular a la muñeca.","Radio y cúbito superpuestos.","",215],
+["antebrazo-ap","MS","Antebrazo AP",["antebrazo frente"],["antebrazo","radio","cúbito"],["Fractura","Fisura","Tumor"],"24×30 dividida en dos","Antebrazo en supinación, codo extendido.","Perpendicular al centro del antebrazo.","Incluir codo y muñeca.","",217],
+["antebrazo-lat","MS","Antebrazo de perfil",["antebrazo lateral"],["antebrazo","radio","cúbito"],["Fractura","Fisura","Tumor"],"24×30 dividida en dos","Por el borde cubital, codo a 90°.","Perpendicular al centro del antebrazo.","Incluir codo y muñeca.","",219],
+["codo-ap","MS","Codo AP",["codo frente"],["codo","húmero distal","cabeza del radio"],["Fractura","Artrosis","Artritis","Epicondilitis"],"13×18 vertical","Brazo y mano extendidos, cara posterior apoyada.","Perpendicular al codo.","Articulación abierta.","",221],
+["codo-lat","MS","Codo de perfil",["codo lateral"],["codo","olécranon","cabeza del radio"],["Fractura","Artrosis","Artritis","Epicondilitis"],"13×18 vertical","Codo a 90°, hombro, codo y muñeca a la misma altura.","Perpendicular al codo.","Epicóndilos superpuestos.","",223],
+["greenspan","MS","Codo oblicua lateromedial (Greenspan)",["Greenspan","cabeza del radio"],["codo","cabeza del radio","coronoides"],["Cabeza del radio aislada","Apófisis coronoides"],"13×18 vertical","Como el perfil de codo.","45° lateromedial, a la cabeza del radio.","Cabeza radial sin superposición.","",225],
+["cabeza-radio","MS","Cabeza del radio oblicua",["cabeza radial"],["codo","cabeza del radio"],["Fractura de cabeza del radio"],"13×18 vertical","Brazo extendido en supinación, cabeza radial al centro.","Perpendicular a la cabeza del radio.","Cabeza radial libre.","",227],
+["coronoides","MS","Apófisis coronoides oblicua",["coronoides"],["codo","coronoides"],["Fractura con desprendimiento"],"13×18 vertical","Brazo y antebrazo en supinación con cuña radial.","Perpendicular a la coronoides.","Coronoides libre.","",229],
+["olecranon","MS","Olécranon axial",["olécranon","surco cubital"],["codo","olécranon","nervio cubital"],["Traumatismo del olécranon","Surco del nervio cubital"],"13×18 vertical","Codo en flexión máxima, cara posterior del brazo apoyada.","Perpendicular al olécranon (inclinar si no flexiona del todo).","Olécranon y surco epitroclear.","",231],
+["humero-ap","MS","Brazo (húmero) AP",["húmero AP","brazo frente"],["brazo","húmero"],["Fractura","Infección","Tumor"],"35×40 vertical","De pie o supino, brazo en supinación.","Perpendicular al centro del brazo.","Incluir hombro y codo.","",233],
+["humero-lat","MS","Brazo (húmero) de perfil",["húmero lateral"],["brazo","húmero"],["Fractura","Infección","Tumor"],"30×40 vertical","Codo a 90°, brazo y antebrazo en un plano.","Perpendicular al centro del brazo.","Incluir hombro y codo.","",235],
+["pie-ap","MI","Pie dorsoplantar",["pie AP","pie de frente"],["pie","metatarsianos","tarso","dedos del pie"],["Fractura","Artrosis","Artritis","Tumor","Cuerpo extraño"],"24×30 dividida en dos","Sentado, rodilla flexionada, planta sobre la película.","10° cefálico a la base del 3.er metatarsiano (15° para Chopart).","Pie completo.","",237],
+["pie-lat","MI","Pie de perfil en decúbito",["pie lateral"],["pie","tarso","calcáneo"],["Fractura","Artrosis","Cuerpo extraño","Partes blandas"],"24×30 vertical","Decúbito lateral, cara externa del pie apoyada.","Perpendicular a la base del 1.er metatarsiano.","Pie completo de perfil.","",239],
+["pie-obl","MI","Pie oblicua",["pie oblicuo"],["pie","metatarsianos","tarso"],["Fractura","Artrosis","Tumor"],"24×30 dividida en dos","Sentado, pie a 45° apoyado por el borde interno.","Perpendicular a la base del 3.er metatarsiano.","Metatarsianos sin superposición.","",241],
+["pie-ap-carga","MI","Pie de frente con apoyo (en carga)",["pie con apoyo","pie en carga AP"],["pie","antepié","hallux"],["Pie plano","Deformidades del antepié"],"24×30 apaisada","De pie, peso repartido en ambos pies.","Perpendicular a la base del 3.er metatarsiano.","Antepié completo bajo carga.","",243],
+["pie-lat-carga","MI","Pie de perfil con apoyo (en carga)",["pie con apoyo lateral","pie en carga"],["pie","arco plantar"],["Medición de arcos plantares","Trastornos de la estática"],"24×30 apaisada, en ranura","De pie sobre un taco, peso repartido; chasis vertical entre los pies.","Horizontal a la articulación tarsometatarsiana.","Arco plantar completo.","",245],
+["ortejos-ap","MI","Dedos del pie de frente",["ortejos","dedos del pie"],["dedos del pie","ortejos","falanges"],["Fracturas","Fisuras","Procesos inflamatorios"],"13×18 apaisada","Planta apoyada.","Perpendicular a la base del 3.er dedo.","Dedos completos.","",247],
+["ortejo1-lat","MI","Primer dedo del pie de perfil",["hallux perfil"],["dedos del pie","hallux"],["Fracturas","Fisuras","Inflamación"],"13×18 dividida","Decúbito lateral sobre el borde interno; resto de dedos flexionados.","Perpendicular a la base de la 1.ª falange.","Hallux de perfil libre.","",249],
+["ortejo23-lat","MI","2.º y 3.er dedo del pie de perfil",["dedos del pie perfil"],["dedos del pie"],["Fracturas","Fisuras","Inflamación"],"13×18 dividida","Borde interno apoyado; separar los demás dedos.","Perpendicular a la base de los dedos.","Dedos libres.","",251],
+["ortejo45-lat","MI","4.º y 5.º dedo del pie de perfil",["dedos del pie perfil"],["dedos del pie"],["Fracturas","Fisuras","Inflamación","Tumores"],"13×18 dividida","Borde externo apoyado; resto de dedos en hiperextensión.","Perpendicular a la base de los dedos.","Dedos libres.","",253],
+["mtf-obl","MI","Metatarsofalángicas y dedos del pie oblicua",["MTF oblicua"],["dedos del pie","metatarsofalángicas"],["Fracturas","Traumatismo"],"18×24 dividida","Borde interno apoyado a 45°.","Perpendicular a la base de la 1.ª falange del 3.er dedo.","Articulaciones MTF abiertas.","",255],
+["sesamoideos","MI","Sesamoideos (axial metatarsofalángica)",["sesamoideos"],["sesamoideos","antepié","metatarsofalángicas"],["Sesamoideos","Cabezas metatarsianas"],"18×24 dividida","Prono, dedos apoyados por la punta en extensión máxima.","Perpendicular a la cabeza del 3.er metatarsiano.","Sesamoideos tangenciales.","",257],
+["chopart","MI","Tarso y articulación de Chopart, frente",["Chopart","mediotarsiana"],["tarso","Chopart","pie"],["Fractura","Alteración del desarrollo"],"18×24 vertical","Sentado, planta apoyada, tarso al centro.","20° cefálico a la interlínea mediotarsiana.","Interlínea de Chopart abierta.","",259],
+["tarso-lat","MI","Tarso de perfil",["tarso lateral"],["tarso","pie"],["Fractura","Alteración del desarrollo"],"18×24 vertical","Decúbito lateral, borde externo apoyado.","Perpendicular al escafoides tarsiano.","Tarso de perfil.","",261],
+["tarso-obl","MI","Tarso oblicua",["tarso oblicuo"],["tarso","pie"],["Fractura","Proceso inflamatorio"],"18×24 vertical","Sentado, pie oblicuo sobre el borde interno.","Perpendicular al escafoides tarsiano.","Tarso sin superposición.","",263],
+["calcaneo-lat","MI","Calcáneo de perfil",["calcáneo lateral"],["calcáneo","talón","pie"],["Espolón calcáneo","Fractura","Procesos inflamatorios e infecciosos"],"13×18 apaisada","Como tobillo de perfil, calcáneo al centro.","Perpendicular al calcáneo.","Calcáneo completo.","",265],
+["calcaneo-axial","MI","Calcáneo axial",["calcáneo axial","Harris"],["calcáneo","talón"],["Fractura","Procesos inflamatorios e infecciosos"],"13×18 vertical","Supino, talón apoyado, antepié traccionado en extensión.","30–40° cefálico al centro del calcáneo.","Calcáneo en axial.","",267],
+["tobillo-ap","MI","Tobillo AP",["tobillo frente","mortaja"],["tobillo","maléolos","astrágalo"],["Fractura","Luxación","Procesos inflamatorios","Artrosis"],"13×18 vertical","Supino, pie a 90° y rotado ~20° hacia dentro (maléolos a la misma altura).","Perpendicular a la articulación tibioperoneoastragalina.","Mortaja abierta.","",269],
+["tobillo-lat","MI","Tobillo de perfil",["tobillo lateral"],["tobillo","maléolos","astrágalo","calcáneo"],["Fractura","Luxación","Procesos inflamatorios","Artrosis"],"13×18 vertical","Decúbito lateral, maléolo externo apoyado, perfil estricto.","Perpendicular a la articulación.","Maléolos superpuestos.","",271],
+["pierna-ap","MI","Pierna (tibia y peroné) AP",["tibia y peroné AP","pierna frente"],["pierna","tibia","peroné"],["Fractura","Proceso inflamatorio","Control de osteosíntesis","Cuerpo extraño"],"30×40 dividida en dos","Supino, pie rotado 20° hacia dentro.","Perpendicular al centro de la pierna.","Incluir rodilla y tobillo.","",273],
+["pierna-lat","MI","Pierna (tibia y peroné) de perfil",["tibia y peroné lateral"],["pierna","tibia","peroné"],["Fractura","Proceso inflamatorio","Control de osteosíntesis","Cuerpo extraño"],"30×40 dividida en dos","Decúbito lateral, rodilla semiflexionada.","Perpendicular al centro.","Incluir rodilla y tobillo.","",275],
+["rodilla-ap","MI","Rodilla AP",["rodilla frente"],["rodilla","fémur distal","tibia proximal"],["Luxación","Fractura","Artrosis"],"18×24 vertical","Supino, pierna extendida con ligera rotación interna.","Perpendicular al borde inferior de la rótula.","Interlínea articular abierta.","",277],
+["rodilla-lat","MI","Rodilla de perfil",["rodilla lateral"],["rodilla","rótula","fémur distal"],["Luxación","Fractura","Artrosis"],"18×24 vertical","Decúbito lateral, rodilla semiflexionada.","Perpendicular a la interlínea.","Cóndilos superpuestos.","",279],
+["intercondilea","MI","Fosa intercondílea (proyección de túnel)",["túnel","intercondílea","escotadura intercondílea"],["rodilla","fosa intercondílea"],["Bloqueo de la flexión","Osteocondritis disecante","Artrosis"],"18×24 apaisada","Supino, rodilla flexionada ~45°.","Cefálico, ~90° respecto a la pierna (borde posterior) o ~110° (borde anterior).","Fosa intercondílea abierta.","",281],
+["rodilla-axial","MI","Rótula axial",["rótula axial","femoropatelar"],["rodilla","rótula","femoropatelar"],["Fractura","Fisura","Degenerativas"],"13×18 apaisada","Semisentado, rodilla semiflexionada; el paciente sostiene el chasis.","Tangencial a la cara articular de la rótula.","Articulación femoropatelar abierta.","",283],
+["jaroschy","MI","Rótula, serie axial (Jaroschy)",["Jaroschy","serie axial de rótula"],["rodilla","rótula","femoropatelar"],["Tipo de rótula (Wiberg)","Relación rótula–cóndilos","Luxación lateral de rótula"],"Tres 13×18","Prono, tomas con flexión de 60°, 90° y 120°.","Tangencial al borde inferior de la rótula (perpendicular, 15° y 10° cefálico).","Rótula tangencial en los tres grados.","",285],
+["femur-ap","MI","Fémur AP",["fémur frente","muslo AP"],["fémur","muslo"],["Fractura","Tumor","Osteomielitis","Metástasis","Control de osteosíntesis"],"30×40 vertical","Supino, pie girado 20° hacia dentro.","Perpendicular al centro del fémur.","Incluir la articulación más próxima a la lesión.","",287],
+["femur-lat","MI","Fémur de perfil",["fémur lateral"],["fémur","muslo"],["Fractura","Tumor","Osteomielitis","Metástasis","Control de osteosíntesis"],"30×40 vertical","Decúbito lateral, pierna algo flexionada.","Perpendicular al centro del muslo.","Incluir la articulación más próxima a la lesión.","",289]
+];
+// Solicitudes frecuentes no óptimas: [id, nombre, alias, zonas, motivo, usar[], otra modalidad, excepción]
+const X=[
+["torax-ap","Tórax AP (anteroposterior)",["tórax antero-posterior","tórax anteroposterior","rx de tórax AP","tele de tórax AP","placa de tórax AP","tórax portátil","tórax en decúbito"],["tórax","pulmón","mediastino","corazón","pleura"],"A corta distancia y en AP se magnifican corazón y mediastino, las escápulas cubren los campos pulmonares y la inspiración suele ser menor.",["torax-pa","torax-lat"],"","Aceptable solo si el paciente no puede ponerse de pie (encamado, terapia intensiva, portátil); anotarlo en la solicitud."],
+["craneo-tce","Radiografía de cráneo en traumatismo craneoencefálico",["cráneo AP y lateral por TCE","rx de cráneo por golpe","cráneo por traumatismo"],["cráneo"],"No muestra hemorragia ni lesión del encéfalo: una radiografía normal no descarta lesión intracraneal.",[],"TC simple de cráneo",""],
+["craneo-cefalea","Radiografía de cráneo por cefalea",["cráneo por dolor de cabeza"],["cráneo"],"No aporta información útil en cefalea.",[],"Sin imagen; TC o RM si hay datos de alarma",""],
+["lumbar-lumbalgia","Columna lumbar en lumbalgia aguda sin datos de alarma",["lumbar por lumbalgia","rx lumbar por dolor de espalda"],["columna lumbar"],"Bajo rendimiento diagnóstico y dosis gonadal relevante; no cambia el manejo en las primeras 6 semanas.",[],"Sin imagen; RM si hay datos de alarma o radiculopatía persistente",""],
+["abdomen-decubito","Abdomen simple en decúbito para buscar perforación",["abdomen acostado por perforación"],["abdomen"],"En decúbito el aire libre no se acumula bajo el diafragma.",["torax-pa","abdomen"],"TC de abdomen","Tomar de pie incluyendo ambas cúpulas."],
+["serie-osea","Serie ósea completa / radiografía corporal total",["mapeo óseo","serie ósea metastásica","rx de cuerpo entero","radiografía de cuerpo completo"],["esqueleto"],"La NOM-229-SSA1-2002 (18.1) prohíbe la radiografía corporal total; además es poco sensible para metástasis.",[],"Gammagrama óseo, RM o PET-TC según el caso",""],
+["mastografia-joven","Mastografía en menor de 35 años con síntomas mamarios",["mastografía en joven","mamografía menor de 35"],["mama"],"La NOM-229-SSA1-2002 (18.21.8) indica usar otros métodos en sintomáticas menores de 35 años.",[],"Ultrasonido mamario",""],
+["waters-decubito","Senos paranasales (Waters) en decúbito",["Waters acostado","senos paranasales acostado"],["senos paranasales"],"Acostado no se ven los niveles hidroaéreos (el vademécum lo advierte).",["waters"],"","Tomar sentado o de pie."]
+];
+// Patologías: [id, nombre, alias, zonas, primera[], complementarias[], primera elección en otra modalidad, alternativas[], evitar[[estudio, motivo, usar]], nota]
+const P=[
+["derrame-pleural","Derrame pleural",["hidrotórax","líquido pleural"],["tórax","pleura","pulmón"],["torax-pa","torax-lat"],[],"",["Ultrasonido pleural: detecta volúmenes pequeños y guía la punción","TC de tórax con contraste si se sospecha empiema o neoplasia"],[["torax-ap","En AP/decúbito el líquido se extiende en capa posterior y puede no formar menisco visible.","torax-pa"]],"El perfil detecta cantidades menores (seno costofrénico posterior) que el PA."],
+["neumotorax","Neumotórax",["aire pleural"],["tórax","pleura","pulmón"],["torax-pa"],["torax-lat"],"",["TC de tórax (neumotórax pequeño u oculto)","Ultrasonido pulmonar en urgencias"],[["torax-ap","En decúbito el aire se colecta en la región anterior y basal y puede pasar inadvertido.","torax-pa"]],"El vademécum sugiere la toma en espiración ante sospecha; hoy la PA en inspiración suele bastar."],
+["neumonia","Neumonía",["neumonía adquirida en la comunidad","consolidación pulmonar","infección pulmonar"],["tórax","pulmón"],["torax-pa","torax-lat"],[],"",["TC si hay complicación o mala evolución","Ultrasonido pulmonar (pediatría, urgencias)"],[["torax-ap","Peor calidad diagnóstica; reservar para el paciente que no puede ponerse de pie.","torax-pa"]],""],
+["tuberculosis","Tuberculosis pulmonar / lesión apical",["TB","tuberculosis","caverna","vértices pulmonares"],["tórax","pulmón","vértices pulmonares"],["torax-pa","torax-lat"],["torax-vertice"],"",["TC de tórax"],[],"La descentrada de vértice libera los ápices de clavículas y primeras costillas."],
+["cardiomegalia","Cardiomegalia / índice cardiotorácico",["crecimiento cardíaco","silueta cardíaca"],["tórax","corazón"],["torax-pa"],["torax-lat"],"",["Ecocardiograma"],[["torax-ap","El AP a corta distancia magnifica la silueta cardíaca e invalida el índice cardiotorácico.","torax-pa"]],"El índice cardiotorácico solo es válido en PA a 1,80 m."],
+["insuficiencia-cardiaca","Insuficiencia cardíaca / edema pulmonar",["congestión pulmonar","edema agudo de pulmón"],["tórax","corazón","pulmón"],["torax-pa","torax-lat"],[],"",["Ecocardiograma","Ultrasonido pulmonar (líneas B)"],[["torax-ap","Magnifica el corazón y redistribuye el flujo; usar solo si no puede ponerse de pie.","torax-pa"]],""],
+["auricula-izquierda","Crecimiento de aurícula izquierda / valvulopatía mitral",["estenosis mitral","aurícula izquierda"],["tórax","corazón","aurícula izquierda"],["torax-oblicuas"],["torax-pa","torax-lat"],"",["Ecocardiograma (elección actual)"],[],"Vademécum: OAD con esófago contrastado."],
+["aneurisma-aorta","Aneurisma de aorta torácica",["dilatación aórtica","aorta"],["tórax","aorta","mediastino"],["torax-pa","torax-lat"],["torax-oblicuas"],"",["Angio-TC de tórax (confirma y mide)"],[],""],
+["masa-mediastinal","Masa o ensanchamiento mediastinal",["mediastino ensanchado","tumor de mediastino","adenopatías mediastinales"],["tórax","mediastino"],["torax-pa","torax-lat"],[],"",["TC de tórax con contraste","RM en masas del mediastino posterior"],[["torax-ap","El AP ensancha artificialmente el mediastino.","torax-pa"]],"El perfil localiza la masa en mediastino anterior, medio o posterior."],
+["nodulo-pulmonar","Nódulo o masa pulmonar",["nódulo pulmonar","cáncer de pulmón","tumor pulmonar"],["tórax","pulmón"],["torax-pa","torax-lat"],[],"",["TC de tórax (caracterización y seguimiento)"],[],""],
+["epoc","EPOC / enfisema",["enfisema","bronquitis crónica","atrapamiento aéreo"],["tórax","pulmón","diafragma"],["torax-pa","torax-lat"],[],"",["TC de tórax en casos seleccionados"],[],""],
+["fractura-costal","Fractura costal",["costillas rotas","trauma de tórax"],["costillas","parrilla costal","tórax"],["parrilla"],["torax-pa"],"",["TC en trauma mayor","Ultrasonido para fracturas cartilaginosas"],[],"Agregar tórax PA para descartar neumotórax o hemotórax."],
+["fractura-esternon","Fractura de esternón",["trauma esternal"],["esternón","tórax"],["esternon-lat"],["esternon-pa"],"",["TC de tórax"],[],""],
+["luxacion-esternoclavicular","Luxación esternoclavicular",["esternoclavicular"],["esternoclavicular","clavícula"],["esternoclavicular"],[],"",["TC (elección, sobre todo en luxación posterior)"],[],""],
+["oclusion-intestinal","Oclusión intestinal",["obstrucción intestinal","íleo","niveles hidroaéreos"],["abdomen","intestino"],["abdomen"],["torax-pa"],"",["TC de abdomen con contraste (causa y nivel)"],[],"Placa simple en decúbito y de pie para niveles hidroaéreos."],
+["perforacion","Perforación de víscera hueca (neumoperitoneo)",["neumoperitoneo","aire libre","abdomen agudo perforativo"],["abdomen","diafragma"],["torax-pa"],["abdomen"],"",["TC de abdomen (más sensible)"],[["abdomen-decubito","En decúbito el aire libre no sube al diafragma.","torax-pa"]],"De pie, incluyendo ambas cúpulas."],
+["litiasis-renal","Litiasis renal / cólico renal",["cálculo renal","urolitiasis","cólico nefrítico"],["abdomen","riñón","vías urinarias"],["abdomen"],[],"",["TC sin contraste de baja dosis (elección en cólico renal)","Ultrasonido renal (embarazo, niños)"],[],"Útil para seguir cálculos radioopacos ya conocidos."],
+["cuerpo-extrano-ingerido","Cuerpo extraño ingerido",["moneda tragada","ingesta de cuerpo extraño"],["abdomen","tórax","esófago"],["torax-pa","abdomen"],["cerv-lat"],"",["Endoscopia","TC si es radiotransparente"],[],""],
+["tce","Traumatismo craneoencefálico / fractura de cráneo",["TCE","golpe en la cabeza","fractura de cráneo","contusión craneal"],["cráneo"],[],[],"TC simple de cráneo",[],[["craneo-tce","La radiografía no descarta lesión intracraneal.",null],["craneo-pa","La radiografía no descarta lesión intracraneal.",null],["craneo-lat","La radiografía no descarta lesión intracraneal.",null]],""],
+["sinusitis","Sinusitis maxilar",["sinusitis","pansinusitis","sinusitis aguda","senos paranasales ocupados"],["senos paranasales","senos maxilares"],["waters"],["caldwell","spn-perfil"],"",["Diagnóstico clínico en sinusitis aguda no complicada","TC de senos (crónica, complicada o prequirúrgica)"],[["spn-perfil","Sola superpone ambos lados y no permite lateralizar.","waters"],["waters-decubito","Acostado no se ven los niveles hidroaéreos.","waters"]],""],
+["sinusitis-frontal","Sinusitis frontal / osteomielitis frontal",["senos frontales"],["senos paranasales","senos frontales"],["caldwell"],["waters"],"",["TC de senos"],[],""],
+["fractura-nasal","Fractura de huesos propios de la nariz",["fractura nasal","nariz rota"],["nariz","huesos nasales"],["nariz-lat"],["nariz-axial"],"",["Diagnóstico clínico; TC si hay fractura facial compleja"],[],""],
+["fractura-cigomatico","Fractura de malar o arco cigomático",["fractura cigomática","malar"],["arco cigomático","malar","macizo facial"],["waters","zimmer"],["mangabeira"],"",["TC facial"],[],""],
+["fractura-facial","Fractura del macizo facial (Le Fort, orbitaria)",["Le Fort","fractura de cara","blow-out","fractura orbitaria"],["macizo facial","órbitas","cara"],["occipitomentoniana","waters"],["mosca","orbitas-pa"],"",["TC facial (elección en trauma facial)"],[],""],
+["fractura-mandibula","Fractura de mandíbula",["fractura de maxilar inferior"],["mandíbula","maxilar inferior"],["mandibula-pa","eisler"],[],"",["Ortopantomografía","TC facial"],[],""],
+["atm","Disfunción o luxación de ATM",["ATM","temporomandibular","bruxismo"],["ATM","mandíbula"],["atm"],[],"",["RM de ATM (disco)","TC o tomografía de haz cónico (hueso)"],[],""],
+["mastoiditis","Mastoiditis",["otomastoiditis"],["oído","mastoides"],["schuller"],["stenvers","mayer"],"",["TC de peñascos (elección actual)"],[],""],
+["colesteatoma","Otitis media crónica / colesteatoma",["otitis crónica","colesteatoma"],["oído","oído medio"],["chausse3","mayer"],["schuller"],"",["TC de peñascos (elección actual)"],[],""],
+["hipoacusia","Hipoacusia, vértigo o sospecha de neurinoma del acústico",["neurinoma del acústico","schwannoma vestibular","acúfenos","vértigo"],["oído","conducto auditivo interno"],["stenvers"],["schuller2"],"",["RM con gadolinio de conductos auditivos internos (elección)"],[],"La radiografía solo muestra ensanchamiento óseo tardío."],
+["hipofisis","Tumor de hipófisis / trastorno del crecimiento",["adenoma hipofisario","silla turca"],["hipófisis","silla turca","cráneo"],["silla-turca"],[],"",["RM de silla turca (elección)"],[],""],
+["cuerpo-extrano-orbita","Cuerpo extraño intraorbitario",["cuerpo extraño en el ojo","esquirla ocular"],["órbitas","ojo"],["orbitas-pa","orbitas-lat"],[],"",["TC de órbitas (elección en trauma penetrante)"],[],"No hacer RM si el cuerpo extraño puede ser metálico."],
+["hipertrofia-adenoidea","Hipertrofia adenoidea",["adenoides","vegetaciones"],["cavum","rinofaringe"],["cavum"],[],"",["Nasofibroscopia"],[],""],
+["litiasis-submaxilar","Litiasis submaxilar (sialolitiasis)",["sialolitiasis","cálculo salival"],["glándula submaxilar","piso de boca"],["arco-inferior"],["eisler"],"",["Ultrasonido de glándulas salivales (elección)","TC o sialografía"],[],""],
+["neuralgia-trigemino","Neuralgia del trigémino",["trigémino"],["base de cráneo"],["hirtz"],[],"",["RM de base de cráneo (elección)"],[],""],
+["impresion-basilar","Impresión basilar / malformación craneocervical",["Chiari","craneocervical"],["unión craneocervical","odontoides"],["odontoides-ap","odontoides-lat"],[],"",["RM o TC craneocervical"],[],""],
+["trauma-cervical","Traumatismo cervical (sospecha de fractura)",["fractura cervical","latigazo","esguince cervical agudo"],["columna cervical","cuello"],["cerv-lat","cerv-ap","odontoides-ap"],["cervicodorsal","cerv-cc-ap"],"",["TC de columna cervical (elección en alto riesgo: NEXUS / regla canadiense)"],[["parisien","El vademécum la contraindica en sospecha de fractura: exige mover la mandíbula.","odontoides-ap"],["cerv-flex-ext","No hacer dinámicas en fase aguda sin descartar fractura.","cerv-lat"],["cerv-flex-lat","No hacer dinámicas en fase aguda sin descartar fractura.","cerv-lat"]],"El perfil debe incluir C7–T1; si no, proyección de nadador."],
+["inestabilidad-cervical","Inestabilidad cervical / control postraumático",["inestabilidad ligamentaria cervical"],["columna cervical"],["cerv-flex-ext"],["cerv-flex-lat","cerv-lat"],"",["RM"],[],"Solo después de descartar fractura."],
+["radiculopatia-cervical","Radiculopatía cervical / estenosis foraminal",["cervicobraquialgia","foraminal"],["columna cervical","agujeros de conjunción"],["cerv-oblicuas"],["cerv-lat","cerv-ap"],"",["RM cervical (raíz y disco)"],[],""],
+["cervicoartrosis","Cervicoartrosis",["espondilosis cervical","artrosis cervical"],["columna cervical"],["cerv-lat","cerv-ap"],["cerv-oblicuas"],"",[],[],""],
+["fractura-masas-laterales","Fractura de masas laterales cervicales",["pilares cervicales"],["columna cervical","masas laterales"],["cerv-cc-ap","cerv-cc-obl"],["cerv-lat"],"",["TC cervical (elección)"],[],""],
+["fractura-vertebral","Fractura vertebral por osteoporosis (aplastamiento)",["aplastamiento vertebral","osteoporosis","fractura por compresión"],["columna dorsal","columna lumbar"],["dorsal-lat","lumbar-lat"],["dorsal-ap","lumbar-ap"],"",["RM (antigüedad de la fractura)","Densitometría (osteoporosis)"],[],""],
+["lumbalgia","Lumbalgia aguda inespecífica (sin datos de alarma)",["dolor lumbar","lumbago"],["columna lumbar"],[],[],"Sin imagen en las primeras 6 semanas",["RM lumbar si hay datos de alarma o radiculopatía persistente"],[["lumbar-lumbalgia","Bajo rendimiento y dosis gonadal relevante.",null],["lumbar-ap","Bajo rendimiento y dosis gonadal relevante sin datos de alarma.",null],["lumbar-lat","Bajo rendimiento y dosis gonadal relevante sin datos de alarma.",null]],"Datos de alarma: trauma importante, fiebre, pérdida de peso, cáncer previo, déficit neurológico, edad > 50 con osteoporosis."],
+["hernia-discal","Hernia de disco / radiculopatía lumbar",["ciática","lumbociática","hernia discal"],["columna lumbar","disco intervertebral"],[],["lumbar-ap","lumbar-lat"],"RM de columna lumbar",[],[["lumbar-obl","La radiografía no muestra el disco ni la raíz nerviosa.",null]],"Las placas solo descartan otras causas óseas."],
+["espondilolisis","Espondilólisis",["lisis del istmo","pars interarticularis"],["columna lumbar","istmo"],["lumbar-obl"],["lumbar-lat"],"",["TC (confirmación)","RM (lesión activa en jóvenes)"],[],""],
+["espondilolistesis","Espondilolistesis",["listesis"],["columna lumbar"],["lumbar-lat"],["lumbar-flex-ext","lumbar-obl"],"",["RM"],[],"Las dinámicas valoran inestabilidad."],
+["lumboartrosis","Lumboartrosis / discopatía L5–S1",["artrosis lumbar","discopatía degenerativa"],["columna lumbar","L5-S1"],["lumbar-ap","lumbar-lat"],["ferguson"],"",["RM si hay radiculopatía"],[],""],
+["escoliosis","Escoliosis",["desviación de columna"],["columna dorsal","columna lumbar"],["dorsal-ap","lumbar-ap"],["lumbar-lat"],"",["Telerradiografía de columna completa de pie (no descrita en el vademécum)"],[],"Tomar de pie."],
+["sacroileitis","Sacroileítis / espondilitis anquilosante",["espondilitis anquilosante","Bechterew","espondiloartritis"],["sacroilíacas","pelvis"],["barsony"],["jager","ferguson"],"",["RM de sacroilíacas (detección temprana)"],[],""],
+["coccigodinia","Fractura de sacro o coxis / coccigodinia",["dolor de coxis","fractura de cóccix"],["sacro","coxis"],["sacro-lat","coxis-lat"],["sacro-ap","coxis-ap"],"",["TC"],[],""],
+["fractura-cadera","Fractura de cadera / cuello femoral",["fractura de cuello de fémur","fractura intertrocantérea","caída en adulto mayor"],["cadera","cuello femoral","pelvis"],["pelvis-ap","cadera-axial"],["cadera-ap","cadera-ml"],"",["RM o TC si la radiografía es negativa y la sospecha es alta"],[["lauenstein","Exige flexionar y abducir el muslo: puede desplazar la fractura.","cadera-axial"]],""],
+["coxartrosis","Coxartrosis",["artrosis de cadera"],["cadera","pelvis"],["pelvis-ap"],["cadera-ap","lauenstein"],"",[],[],""],
+["displasia-cadera","Displasia del desarrollo de cadera (luxación congénita)",["luxación congénita de cadera","LCC","DDC"],["cadera","pelvis","displasia de cadera"],["vonrosen","pelvis-ap"],["lauenstein"],"Ultrasonido de cadera (Graf) antes de los 4–6 meses",[],[],"El vademécum indica von Rosen incluso sin osificación; la práctica actual prefiere el ultrasonido en ese periodo y la radiografía después."],
+["perthes","Perthes / epifisiólisis de cadera",["Legg-Calvé-Perthes","epifisiolistesis"],["cadera","pelvis"],["pelvis-ap","lauenstein"],[],"",["RM (fase temprana)"],[],"Lauenstein bilateral comparativo."],
+["fractura-pelvis","Fractura de pelvis",["trauma pélvico"],["pelvis"],["pelvis-ap"],["sinfisis-pa"],"",["TC (elección en trauma mayor)"],[],""],
+["lesion-sinfisis","Disyunción o lesión de la sínfisis del pubis",["osteítis del pubis","pubalgia"],["pubis","sínfisis"],["sinfisis-pa"],["sinfisis-axial","pelvis-ap"],"",["RM en pubalgia del deportista"],[],""],
+["metastasis-oseas","Rastreo de metástasis óseas",["metástasis","mapeo óseo"],["esqueleto"],[],[],"Gammagrama óseo, RM o PET-TC",["Radiografía dirigida solo a zonas sintomáticas"],[["serie-osea","Prohibida por la NOM-229 (radiografía corporal total) y poco sensible.",null]],""],
+["luxacion-hombro","Luxación de hombro",["hombro luxado"],["hombro","glenohumeral"],["hombro-ap","hombro-transtoracica"],["escapula-lat"],"",["TC (fractura asociada)"],[["hombro-axial","El vademécum desaconseja el vuelo de pájaro en traumatismo reciente: exige abducir el brazo.","hombro-transtoracica"]],"En fractura o luxación el rayo va perpendicular, sin inclinación."],
+["fractura-humero-proximal","Fractura de húmero proximal",["fractura subcapital","cuello quirúrgico"],["hombro","húmero proximal"],["hombro-ap","hombro-transtoracica"],["humero-ap"],"",["TC (planificación quirúrgica)"],[["hombro-axial","No se recomienda en traumatismo reciente.","hombro-transtoracica"]],""],
+["tendinitis-calcificante","Tendinitis calcificante / periartritis de hombro",["hombro doloroso","calcificación del manguito","periartritis"],["hombro","manguito rotador"],["hombro-serie"],["hombro-ap"],"",["Ultrasonido de hombro"],[],""],
+["manguito-rotador","Rotura del manguito rotador",["supraespinoso","tendinopatía del manguito"],["hombro","manguito rotador"],[],["hombro-ap"],"Ultrasonido o RM de hombro",[],[],"La radiografía solo descarta otras causas o muestra signos indirectos."],
+["tendinitis-bicipital","Tendinitis o calcificación bicipital",["bíceps","corredera bicipital"],["hombro","corredera bicipital"],["humero-tangencial"],[],"",["Ultrasonido"],[],""],
+["luxacion-acromioclavicular","Luxación o subluxación acromioclavicular",["separación acromioclavicular"],["hombro","acromioclavicular"],["acromioclavicular"],["ac-comparadas"],"",[],[],"Las comparativas con peso ponen de manifiesto subluxaciones."],
+["fractura-clavicula","Fractura de clavícula",["clavícula rota"],["clavícula"],["clavicula-pa"],["clavicula-tang"],"",[],[],""],
+["fractura-escapula","Fractura de escápula",["omóplato"],["escápula","omóplato"],["escapula-ap","escapula-lat"],[],"",["TC"],[],""],
+["fractura-humero","Fractura de diáfisis humeral",["brazo roto"],["brazo","húmero"],["humero-ap","humero-lat"],[],"",[],[],"Incluir hombro y codo."],
+["fractura-codo","Fractura de codo / supracondílea",["fractura supracondílea","trauma de codo"],["codo","húmero distal"],["codo-ap","codo-lat"],["greenspan"],"",["TC en fracturas complejas"],[],"Buscar el signo de la almohadilla grasa en el perfil."],
+["fractura-cabeza-radio","Fractura de cabeza del radio",["cabeza radial"],["codo","cabeza del radio"],["codo-ap","codo-lat"],["greenspan","cabeza-radio"],"",[],[],""],
+["fractura-coronoides","Fractura de coronoides",["coronoides"],["codo","coronoides"],["codo-lat","coronoides"],[],"",["TC"],[],""],
+["olecranon-cubital","Fractura de olécranon / neuropatía cubital",["olécranon","nervio cubital"],["codo","olécranon"],["codo-lat","olecranon"],[],"",["Ultrasonido o electromiografía (nervio cubital)"],[],""],
+["epicondilitis","Epicondilitis",["codo de tenista","epitrocleítis"],["codo"],[],["codo-ap","codo-lat"],"Diagnóstico clínico; ultrasonido si hay duda",[],[],""],
+["fractura-antebrazo","Fractura de antebrazo",["radio y cúbito"],["antebrazo","radio","cúbito"],["antebrazo-ap","antebrazo-lat"],[],"",[],[],"Incluir codo y muñeca (Monteggia, Galeazzi)."],
+["fractura-radio-distal","Fractura de radio distal (Colles)",["Colles","fractura de muñeca","tallo verde"],["muñeca","radio distal"],["muneca-pa","muneca-lat"],[],"",["TC en fracturas articulares complejas"],[],""],
+["fractura-escafoides","Fractura de escafoides",["navicular","tabaquera anatómica"],["escafoides","muñeca","carpo"],["escafoides"],["muneca-pa","muneca-lat","carpo-obl"],"",["RM (o TC) si la radiografía inicial es negativa con clínica persistente"],[["muneca-pa","Sola puede no mostrar la fractura: el escafoides queda acortado.","escafoides"]],""],
+["fractura-carpo","Fractura de otros huesos del carpo",["piramidal","pisiforme","ganchoso"],["carpo","muñeca"],["carpo-pa","carpo-lat"],["piramidal","pisiforme","canal-carpiano"],"",["TC"],[],""],
+["tunel-carpiano","Síndrome del túnel carpiano",["túnel carpiano"],["muñeca","túnel carpiano"],[],["canal-carpiano"],"Diagnóstico clínico y electromiografía; ultrasonido",[],[],""],
+["edad-osea","Edad ósea",["maduración ósea","talla baja"],["mano","carpo"],["mano-pa"],["carpo-pa"],"",[],[],"Habitualmente mano izquierda (atlas de Greulich-Pyle)."],
+["artritis-reumatoide","Artritis reumatoide / poliartritis de manos",["artritis","poliartritis"],["mano","carpo"],["mano-pa","mano-obl"],[],"",["Ultrasonido o RM (detección temprana de sinovitis)"],[],"Ambas manos para comparar."],
+["fractura-mano","Fractura de metacarpianos",["fractura del boxeador","mano rota"],["mano","metacarpianos"],["mano-pa","mano-obl"],["mano-lat"],"",[],[],""],
+["cuerpo-extrano-mano","Cuerpo extraño en la mano",["astilla","vidrio en la mano"],["mano"],["mano-pa","mano-lat","mano-obl"],[],"",["Ultrasonido para cuerpos radiotransparentes (madera, plástico)"],[],"Marcar la zona sospechosa."],
+["fractura-pulgar","Fractura del pulgar (Bennett)",["Bennett","Rolando"],["pulgar"],["pulgar-pa","pulgar-lat"],[],"",[],[],""],
+["ligamento-pulgar","Lesión del ligamento colateral del pulgar",["pulgar del esquiador","pulgar del guardabosques"],["pulgar"],["pulgar-pa","pulgar-lat"],["pulgar-estres"],"",["Ultrasonido o RM"],[],"Estrés solo después de descartar fractura."],
+["fractura-dedo-mano","Fractura de dedo de la mano",["falange","dedo roto"],["dedos","mano"],["dedo-pa","dedo23-lat","dedo45-lat"],[],"",[],[["mano-pa","La mano completa no da un perfil verdadero del dedo.","dedo-pa"]],""],
+["fractura-femur","Fractura de fémur",["muslo"],["fémur","muslo"],["femur-ap","femur-lat"],[],"",[],[],"Incluir cadera y rodilla."],
+["trauma-rodilla","Traumatismo de rodilla",["fractura de rodilla","meseta tibial","trauma de rodilla"],["rodilla"],["rodilla-ap","rodilla-lat"],["rodilla-axial"],"",["TC (fractura de meseta)"],[],"Aplicar las reglas de Ottawa para rodilla."],
+["gonartrosis","Gonartrosis",["artrosis de rodilla"],["rodilla"],["rodilla-ap","rodilla-lat"],["rodilla-axial"],"",[],[],"Idealmente AP de pie en carga (no descrita en el vademécum)."],
+["osteocondritis","Osteocondritis disecante de rodilla",["bloqueo de rodilla","cuerpo libre"],["rodilla","fosa intercondílea"],["intercondilea"],["rodilla-ap","rodilla-lat"],"",["RM"],[],""],
+["inestabilidad-rotuliana","Inestabilidad o luxación de rótula / condromalacia",["luxación de rótula","condromalacia","dolor anterior de rodilla"],["rodilla","rótula","femoropatelar"],["jaroschy"],["rodilla-axial","rodilla-lat"],"",["RM o TC"],[],""],
+["lesion-meniscal","Lesión de menisco o ligamentos de rodilla",["menisco","ligamento cruzado","LCA"],["rodilla"],[],["rodilla-ap","rodilla-lat"],"RM de rodilla",[],[],"La radiografía solo descarta fractura asociada."],
+["fractura-pierna","Fractura de tibia y peroné",["pierna rota"],["pierna","tibia","peroné"],["pierna-ap","pierna-lat"],[],"",[],[],"Incluir rodilla y tobillo."],
+["esguince-tobillo","Esguince / fractura de tobillo",["torcedura de tobillo","fractura de maléolo"],["tobillo","maléolos"],["tobillo-ap","tobillo-lat"],[],"",["Ultrasonido o RM (ligamentos)"],[],"Solo si cumple reglas de Ottawa."],
+["fractura-calcaneo","Fractura de calcáneo",["caída de altura"],["calcáneo","talón"],["calcaneo-lat","calcaneo-axial"],[],"",["TC (elección para clasificar)"],[],""],
+["espolon-calcaneo","Espolón calcáneo / fascitis plantar",["fascitis plantar","talalgia"],["calcáneo","talón"],["calcaneo-lat"],[],"",["Ultrasonido"],[],""],
+["pie-plano","Pie plano / trastornos de la estática",["pie cavo","arco plantar"],["pie","arco plantar"],["pie-ap-carga","pie-lat-carga"],[],"",[],[["pie-lat","Sin carga no refleja el colapso del arco.","pie-lat-carga"],["pie-ap","Sin carga no refleja la deformidad.","pie-ap-carga"]],""],
+["hallux-valgus","Hallux valgus (juanete)",["juanete"],["pie","hallux","antepié"],["pie-ap-carga"],["pie-lat-carga","sesamoideos"],"",[],[["pie-ap","Sin carga subestima los ángulos.","pie-ap-carga"]],""],
+["fractura-pie","Fractura de metatarsianos",["fractura de pie","Jones"],["pie","metatarsianos"],["pie-ap","pie-obl"],["pie-lat"],"",[],[],"Aplicar reglas de Ottawa para mediopié."],
+["fractura-tarso","Fractura de tarso / Lisfranc / Chopart",["Lisfranc","Chopart"],["tarso","pie"],["chopart","tarso-lat","tarso-obl"],["pie-ap-carga"],"",["TC"],[],""],
+["fractura-ortejo","Fractura de dedo del pie",["dedo del pie roto"],["dedos del pie"],["ortejos-ap","mtf-obl"],["ortejo1-lat","ortejo23-lat","ortejo45-lat"],"",[],[],""],
+["sesamoiditis","Sesamoiditis / fractura de sesamoideos",["sesamoideos"],["sesamoideos","antepié"],["sesamoideos"],["pie-ap"],"",["RM"],[],""],
+["cuerpo-extrano-pie","Cuerpo extraño en el pie",["clavo en el pie","astilla en el pie"],["pie"],["pie-ap","pie-lat"],["pie-obl"],"",["Ultrasonido para cuerpos radiotransparentes"],[],""],
+["osteomielitis","Osteomielitis",["infección ósea"],["hueso"],[],[],"Radiografía de la zona en dos proyecciones y RM",["Gammagrafía"],[],"La radiografía puede ser normal las primeras 2 semanas."]
+];
+
+const norm=s=>(s||"").toString().normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/rr/g,"r").replace(/[^a-z0-9ñ]+/g," ").trim();
+const STOP=new Set(["de","del","la","el","las","los","en","y","por","para","con","rx","radiografia","proyeccion","a","al","o","un","una","estudio","placa"]);
+const toks=s=>norm(s).split(" ").filter(t=>t&&!STOP.has(t));
+const E={},PA={},XA={};
+S.forEach(r=>{E[r[0]]={id:r[0],sec:r[1],n:r[2],al:r[3],z:r[4],ind:r[5],ch:r[6],pos:r[7],rc:r[8],cr:r[9],nt:r[10],pg:r[11],k:"e"}});
+X.forEach(r=>{XA[r[0]]={id:r[0],sec:"XX",n:r[1],al:r[2],z:r[3],mot:r[4],use:r[5],ext:r[6],exc:r[7],k:"x"}});
+P.forEach(r=>{PA[r[0]]={id:r[0],n:r[1],al:r[2],z:r[3],pr:r[4],co:r[5],ext:r[6],alt:r[7],ev:r[8],nt:r[9],k:"p"}});
+const ST=id=>E[id]||XA[id];
+const elig={},compl={},warn={};
+Object.values(PA).forEach(p=>{p.pr.forEach(i=>(elig[i]=elig[i]||[]).push(p.id));p.co.forEach(i=>(compl[i]=compl[i]||[]).push(p.id));p.ev.forEach(v=>(warn[v[0]]=warn[v[0]]||[]).push([p.id,v[1],v[2]]))});
+const ZON={};
+[...Object.values(E),...Object.values(XA),...Object.values(PA)].forEach(o=>o.z.forEach(z=>{const k=norm(z);(ZON[k]=ZON[k]||{n:z,e:[],p:[]})[o.k==="p"?"p":"e"].push(o.id)}));
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const col=id=>(SEC[(ST(id)||{}).sec]||["","#888"])[1];
+const L=id=>{const o=ST(id);return o?`<a class="lnk" href="#e-${id}">${esc(o.n)}</a>`:""};
+const LP=id=>`<a class="lnk" href="#p-${id}">${esc(PA[id].n)}</a>`;
+
+function score(o,qt,qs){
+  const name=norm(o.n),al=o.al.map(norm),z=o.z.map(norm),ex=norm((o.ind||[]).join(" ")+" "+(o.alt||[]).join(" "));
+  let s=0;
+  if(name===qs||al.includes(qs))s+=100;
+  if(name.includes(qs))s+=40;if(al.some(a=>a.includes(qs)))s+=30;
+  for(const t of qt){const w=new RegExp("(^| )"+t);let f=0;
+    if(w.test(name)){s+=10;f=1}else if(al.some(a=>w.test(a))){s+=8;f=1}else if(z.some(a=>w.test(a))){s+=5;f=1}else if(w.test(ex)){s+=2;f=1}
+    if(!f)return 0}
+  return s}
+function search(q,mode){
+  const qt=toks(q),qs=norm(q);if(!qt.length)return null;
+  const out={e:[],p:[],r:[]};
+  if(mode==="all"||mode==="e")[...Object.values(E),...Object.values(XA)].forEach(o=>{const s=score(o,qt,qs);if(s)out.e.push([s,o])});
+  if(mode==="all"||mode==="p")Object.values(PA).forEach(o=>{const s=score(o,qt,qs);if(s)out.p.push([s,o])});
+  if(mode==="all"||mode==="r")Object.entries(ZON).forEach(([k,z])=>{const ok=qt.every(t=>new RegExp("(^| )"+t).test(k));if(ok)out.r.push([k===qs?100:50-k.length,z,k])});
+  for(const k in out)out[k].sort((a,b)=>b[0]-a[0]);
+  return out}
+
+const view=document.getElementById("view");
+let mode="all";
+function hit(href,c,t,sub,tag){return `<a class="hit" href="${href}"><i style="background:${c}"></i><div><b>${esc(t)}${tag||""}</b><span>${esc(sub)}</span></div></a>`}
+function renderSearch(q){
+  const r=search(q,mode);if(!r){route();return}
+  let h=`<div class="res">`;
+  if(r.e.length)h+=`<h2>Estudios (${r.e.length})</h2>`+r.e.slice(0,25).map(([,o])=>o.k==="x"?hit("#e-"+o.id,SEC.XX[1],o.n,"Solicitud no óptima: "+o.mot,`<span class="tag v-bad">No óptimo</span>`):hit("#e-"+o.id,col(o.id),o.n,SEC[o.sec][0]+" · "+o.ind.join(", "))).join("");
+  if(r.r.length)h+=`<h2>Regiones (${r.r.length})</h2>`+r.r.slice(0,12).map(([,z,k])=>hit("#r-"+k.replace(/ /g,"-"),"#64748b",z.n,`${z.e.length} estudios · ${z.p.length} patologías`)).join("");
+  if(r.p.length)h+=`<h2>Patologías (${r.p.length})</h2>`+r.p.slice(0,20).map(([,o])=>hit("#p-"+o.id,"#255f9e",o.n,"Elección: "+(o.pr.map(i=>ST(i).n).join(" + ")||o.ext))).join("");
+  if(!r.e.length&&!r.p.length&&!r.r.length)h+=`<p class="empty">Sin resultados para “${esc(q)}”. Pruebe con otra palabra (p. ej. la región o un sinónimo).</p>`;
+  view.innerHTML=h+"</div>"}
+
+function card(id){
+  const o=ST(id);if(!o){view.innerHTML=`<p class="empty">No encontrado.</p>`;return}
+  const c=col(id);let h=`<article class="card" style="--spine:${c}">`;
+  if(o.k==="x"){
+    h+=`<div class="meta">Solicitud frecuente no óptima</div><h2>${esc(o.n)}</h2><div class="box b-bad"><h3>No recomendado</h3><p style="margin:0">${esc(o.mot)}</p></div>`;
+    if(o.use.length)h+=`<div class="box b-ok"><h3>Utilice en su lugar</h3><div class="go">${o.use.map(L).join(" ")}</div></div>`;
+    if(o.ext)h+=`<div class="box b-alt"><h3>Estudio indicado (otra modalidad)</h3><p style="margin:0">${esc(o.ext)}</p></div>`;
+    if(o.exc)h+=`<div class="box b-warn"><h3>Excepción</h3><p style="margin:0">${esc(o.exc)}</p></div>`;
+  }else{
+    h+=`<div class="meta">${esc(SEC[o.sec][0])} · Vademécum pág. ${o.pg}${o.al.length?" · También: "+esc(o.al.join(", ")):""}</div><h2>${esc(o.n)}</h2>`;
+    h+=`<div class="pills">${o.ind.map(i=>`<span class="pill">${esc(i)}</span>`).join("")}</div>`;
+    h+=`<dl class="tech"><dt>Película / chasis</dt><dd>${esc(o.ch)}</dd><dt>Posición</dt><dd>${esc(o.pos)}</dd><dt>Rayo central</dt><dd>${esc(o.rc)}</dd><dt>Imagen correcta</dt><dd>${esc(o.cr)}</dd>${o.nt?`<dt>Nota</dt><dd>${esc(o.nt)}</dd>`:""}</dl>`;
+  }
+  if(elig[id])h+=`<div class="box b-ok"><h3>Estudio de elección en</h3><div class="go">${elig[id].map(LP).join(" ")}</div></div>`;
+  if(compl[id])h+=`<div class="box b-warn"><h3>Complementario en</h3><div class="go">${compl[id].map(LP).join(" ")}</div></div>`;
+  if(warn[id])h+=`<div class="box b-bad"><h3>No recomendado para</h3><ul>${warn[id].map(([p,m,u])=>`<li><a href="#p-${p}">${esc(PA[p].n)}</a>: ${esc(m)}${u?" Use: "+L(u):PA[p].ext?" Use: "+esc(PA[p].ext)+".":""}</li>`).join("")}</ul></div>`;
+  const z=norm(o.z[0]),rel=(ZON[z]?ZON[z].e:[]).filter(i=>i!==id&&E[i]);
+  if(rel.length)h+=`<div class="note">Otras proyecciones de ${esc(o.z[0])}: <div class="go" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${rel.map(L).join("")}</div></div>`;
+  view.innerHTML=h+"</article>"}
+
+function pcard(id){
+  const p=PA[id];if(!p){view.innerHTML=`<p class="empty">No encontrado.</p>`;return}
+  let h=`<article class="card" style="--spine:#255f9e"><div class="meta">Patología · ${esc(p.z.join(", "))}${p.al.length?" · También: "+esc(p.al.join(", ")):""}</div><h2>${esc(p.n)}</h2>`;
+  if(p.pr.length)h+=`<div class="box b-ok"><h3>Primera elección (radiografía)</h3><div class="go">${p.pr.map(L).join(" ")}</div></div>`;
+  if(p.ext)h+=`<div class="box b-alt"><h3>${p.pr.length?"Antes de la radiografía considere":"Estudio de elección"}</h3><p style="margin:0">${esc(p.ext)}</p></div>`;
+  if(p.co.length)h+=`<div class="box b-warn"><h3>Complementarias</h3><div class="go">${p.co.map(L).join(" ")}</div></div>`;
+  if(p.alt.length)h+=`<div class="box b-alt"><h3>Alternativas (otras modalidades)</h3><ul>${p.alt.map(a=>`<li>${esc(a)}</li>`).join("")}</ul></div>`;
+  if(p.ev.length)h+=`<div class="box b-bad"><h3>No recomendado</h3><ul>${p.ev.map(([e,m,u])=>`<li><b>${esc(ST(e).n)}</b>: ${esc(m)}${u?" Use: "+L(u):""}</li>`).join("")}</ul></div>`;
+  if(p.nt)h+=`<p class="note">${esc(p.nt)}</p>`;
+  view.innerHTML=h+`<p class="note"><button class="btn" type="button" id="usev">Verificar una solicitud para esta patología</button></p></article>`;
+  document.getElementById("usev").onclick=()=>{vp.value=p.n;ve.value="";ve.focus();verify()}}
+
+function rcard(k){
+  const z=ZON[k];if(!z){view.innerHTML=`<p class="empty">Región no encontrada.</p>`;return}
+  let h=`<article class="card" style="--spine:#64748b"><div class="meta">Región anatómica</div><h2>${esc(z.n[0].toUpperCase()+z.n.slice(1))}</h2>`;
+  const es=z.e.filter(i=>E[i]),xs=z.e.filter(i=>XA[i]);
+  if(es.length)h+=`<div class="box b-ok"><h3>Proyecciones (${es.length})</h3><div class="go">${es.map(L).join(" ")}</div></div>`;
+  if(z.p.length)h+=`<div class="box b-alt"><h3>Patologías de la región</h3><div class="go">${z.p.map(LP).join(" ")}</div></div>`;
+  if(xs.length)h+=`<div class="box b-bad"><h3>Solicitudes no óptimas frecuentes</h3><div class="go">${xs.map(L).join(" ")}</div></div>`;
+  view.innerHTML=h+"</article>"}
+
+// Verificador
+const vp=document.getElementById("vp"),ve=document.getElementById("ve"),vd=document.getElementById("verdict");
+const pByName={},eByName={};
+Object.values(PA).forEach(p=>{pByName[norm(p.n)]=p.id;p.al.forEach(a=>pByName[norm(a)]=pByName[norm(a)]||p.id)});
+[...Object.values(E),...Object.values(XA)].forEach(o=>{eByName[norm(o.n)]=o.id;o.al.forEach(a=>eByName[norm(a)]=eByName[norm(a)]||o.id)});
+document.getElementById("dlp").innerHTML=Object.values(PA).map(p=>`<option value="${esc(p.n)}">`).join("");
+document.getElementById("dle").innerHTML=[...Object.values(E),...Object.values(XA)].map(o=>`<option value="${esc(o.n)}">`).join("");
+function best(q,map,pool){const n=norm(q);if(!n)return null;if(map[n])return map[n];const qt=toks(q);if(!qt.length)return null;let b=null,bs=0;pool.forEach(o=>{const s=score(o,qt,n);if(s>bs){bs=s;b=o.id}});return b}
+function verify(){
+  const pid=best(vp.value,pByName,Object.values(PA)),eid=best(ve.value,eByName,[...Object.values(E),...Object.values(XA)]);
+  let cls="",t="",body="",go=[];
+  if(!vp.value.trim()&&!ve.value.trim()){vd.className="verdict";vd.innerHTML="";return}
+  if(eid&&!vp.value.trim()){const o=ST(eid);
+    if(o.k==="x"){cls="v-bad";t="Solicitud no óptima";body=o.mot+(o.exc?" "+o.exc:"");go=o.use.map(L);if(o.ext)body+=" Indicado: "+o.ext+"."}
+    else{cls="v-alt";t=o.n;body="Indique el diagnóstico pretendido para saber si es el estudio óptimo.";go=[L(eid)]}}
+  else if(pid&&!eid){const p=PA[pid];cls="v-alt";t="Para "+p.n.toLowerCase();body=p.pr.length?"Primera elección:":"Estudio de elección: "+p.ext+".";go=p.pr.map(L);if(!ve.value.trim())body+=" Escriba el estudio solicitado para verificarlo.";else body="No reconozco el estudio «"+ve.value+"». "+body}
+  else if(!pid){cls="v-warn";t="Diagnóstico no encontrado";body="Elija uno de la lista o escriba un sinónimo (p. ej. «derrame pleural»)."}
+  else{const p=PA[pid],o=ST(eid),ev=p.ev.find(v=>v[0]===eid);
+    if(ev){cls="v-bad";t="No recomendado: "+o.n;body=ev[1];go=ev[2]?[L(ev[2])]:p.pr.map(L);if(!ev[2]&&p.ext)body+=" Indicado: "+p.ext+".";if(o.exc)body+=" "+o.exc}
+    else if(o.k==="x"){cls="v-bad";t="No recomendado: "+o.n;body=o.mot;go=(p.pr.length?p.pr:o.use).map(L);if(p.ext)body+=" Indicado: "+p.ext+"."}
+    else if(p.pr.includes(eid)){cls="v-ok";t="Óptimo";body=o.n+" es de primera elección para "+p.n.toLowerCase()+".";const rest=p.pr.filter(i=>i!==eid);if(rest.length){body+=" Complete la serie con:";go=rest.map(L)}if(p.ext)body+=" Considere también: "+p.ext+"."}
+    else if(p.co.includes(eid)){cls="v-warn";t="Aceptable como complemento";body="Para "+p.n.toLowerCase()+(p.pr.length?" la primera elección es:":" el estudio de elección es: "+p.ext+".");go=p.pr.map(L)}
+    else if(!p.pr.length){cls="v-bad";t="La radiografía no es el estudio de elección";body="Para "+p.n.toLowerCase()+" se indica: "+p.ext+"."}
+    else{const same=o.z.some(z=>p.z.map(norm).includes(norm(z)));cls="v-warn";t="No es el estudio óptimo";body=(same?"Es de la misma región, pero no es la proyección indicada para ":"Corresponde a otra región; no sirve para ")+p.n.toLowerCase()+". Utilice:";go=p.pr.map(L)}}
+  vd.className="verdict on "+cls;
+  vd.innerHTML=`<b class="t">${esc(t)}</b><p>${esc(body)}</p>${go.length?`<div class="go">${go.join("")}</div>`:""}<p style="font-size:13px;color:var(--mut)">Recuerde: la solicitud debe llevar nombre, cédula, firma, fecha e información clínica del médico (NOM-229, 7.3.2).</p>`}
+vp.addEventListener("input",verify);ve.addEventListener("input",verify);
+document.getElementById("vclr").onclick=()=>{vp.value="";ve.value="";verify();vp.focus()};
+
+// Índice lateral
+const idx=document.getElementById("index"),tr=document.getElementById("t-reg"),tp=document.getElementById("t-pat");
+function idxReg(){idx.innerHTML=Object.entries(SEC).map(([k,[n,c]])=>{const items=k==="XX"?Object.values(XA):Object.values(E).filter(o=>o.sec===k);return `<details ${k==="HT"?"open":""}><summary class="sec"><i style="background:${c}"></i>${n} <small>(${items.length})</small></summary><ul class="idx">${items.map(o=>`<li><a href="#e-${o.id}" data-id="${o.id}">${esc(o.n)}${o.pg?` <small>p. ${o.pg}</small>`:""}</a></li>`).join("")}</ul></details>`}).join("");mark()}
+function idxPat(){const ps=Object.values(PA).sort((a,b)=>a.n.localeCompare(b.n,"es"));let last="";idx.innerHTML=`<ul class="idx" style="padding-left:0">`+ps.map(p=>{const l=norm(p.n)[0].toUpperCase();const hd=l!==last?`<li class="sec">${(last=l)}</li>`:"";return hd+`<li><a href="#p-${p.id}" data-id="${p.id}">${esc(p.n)}</a></li>`}).join("")+"</ul>";mark()}
+function mark(){const id=(location.hash||"").slice(3);idx.querySelectorAll("a").forEach(a=>a.classList.toggle("cur",a.dataset.id===id))}
+tr.onclick=()=>{tr.setAttribute("aria-selected","true");tp.setAttribute("aria-selected","false");idxReg()};
+tp.onclick=()=>{tp.setAttribute("aria-selected","true");tr.setAttribute("aria-selected","false");idxPat()};
+
+// Búsqueda y modos
+const q=document.getElementById("q");
+q.addEventListener("input",()=>{q.value.trim()?renderSearch(q.value):route()});
+document.getElementById("modes").addEventListener("click",ev=>{const b=ev.target.closest(".chip");if(!b)return;mode=b.dataset.m;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));if(q.value.trim())renderSearch(q.value);q.focus()});
+
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  if(h.startsWith("e-"))card(h.slice(2));
+  else if(h.startsWith("p-"))pcard(h.slice(2));
+  else if(h.startsWith("r-"))rcard(h.slice(2).replace(/-/g," "));
+  else card("torax-pa");
+  mark()}
+window.addEventListener("hashchange",()=>{q.value="";route();window.scrollTo({top:document.querySelector(".ver").offsetTop-8,behavior:"smooth"})});
+idxReg();route();
+vp.value="Derrame pleural";ve.value="Tórax AP (anteroposterior)";verify();
+}
+</script>
+</body>
+</html>
